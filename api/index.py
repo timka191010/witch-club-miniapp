@@ -6,9 +6,12 @@ from psycopg2.extras import RealDictCursor
 import random
 from datetime import datetime
 
+# Get the base directory
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 app = Flask(__name__, 
-            template_folder='../templates',
-            static_folder='../static')
+            template_folder=os.path.join(BASE_DIR, 'templates'),
+            static_folder=os.path.join(BASE_DIR, 'static'))
 app.secret_key = os.getenv('SECRET_KEY', 'witch_club_secret_key_2026')
 
 # ==================== DATABASE ====================
@@ -54,7 +57,6 @@ def init_db():
         print("Database initialized successfully")
     except Exception as e:
         print(f"Database initialization error: {e}")
-        raise
 
 # Initialize database on startup
 try:
@@ -249,6 +251,3 @@ def admin_logout():
 
 # For Vercel serverless
 app.debug = False
-
-if __name__ == '__main__':
-    app.run(debug=True)
