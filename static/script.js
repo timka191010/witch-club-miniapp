@@ -1,111 +1,127 @@
-// Инициализация Telegram WebApp
-const tg = window.Telegram.WebApp;
-tg.expand();
+document.addEventListener('DOMContentLoaded', () => {
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
 
-// Переключение табов
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        const tabName = tab.dataset.tab;
-        
-        // Убрать активные классы
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
-        // Добавить активные классы
-        tab.classList.add('active');
-        document.getElementById(tabName).classList.add('active');
-        
-        // Загрузить данные профиля при открытии вкладки
-        if (tabName === 'profile') {
-            loadProfile();
-        }
-    });
-});
-
-// Отправка формы
-document.getElementById('applicationForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const data = {
-        user_id: tg.initDataUnsafe.user?.id || Math.floor(Math.random() * 1000000), // Fallback для теста
-        name: formData.get('name'),
-        age: formData.get('age'),
-        family_status: formData.get('family_status'),
-        children: formData.get('children'),
-        hobbies: formData.get('hobbies'),
-        themes: formData.get('themes'),
-        goal: formData.get('goal'),
-        source: formData.get('source')
-    };
-    
-    // Проверка: все поля заполнены?
-    for (let key in data) {
-        if (!data[key] || data[key].trim() === '') {
-            tg.showAlert(`❌ Заполните все поля!`);
-            return;
-        }
+    if (tg) {
+        tg.expand();
     }
-    
-    try {
-        const response = await fetch('/submit', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
+
+    // Переключение табов
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.dataset.tab;
+
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            tab.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            if (tabName === 'profile') {
+                loadProfile(tg);
+            }
         });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            tg.showAlert('✅ Анкета отправлена! Ожидайте проверки.');
-            e.target.reset();
-            
-            // Переключиться на профиль
-            document.querySelector('.tab[data-tab="profile"]').click();
-        } else {
-            tg.showAlert('❌ ' + result.message);
-        }
-    } catch (error) {
-        console.error('Ошибка отправки:', error);
-        tg.showAlert('❌ Ошибка подключения к серверу');
+    });
+
+    // Обработчик формы
+    const form = document.getElementById('applicationForm');
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fd = new FormData(form);
+            const data = {
+                user_id: tg?.initDataUnsafe?.user?.id || 0,
+                name: fd.get('name').trim(),
+                age: fd.get('age').trim(),
+                family_status: fd.get('family_status').trim(),
+                children: fd.get('children').trim(),
+                hobbies: fd.get('hobbies').trim(),
+                themes: fd.get('themes').trim(),
+                goal: fd.get('goal').trim(),
+                source: fd.get('source').trim()
+            };
+
+            // Простая проверка пустых полей
+            for (const key in data) {
+                if (key !== 'user_id' && (!data[key] || data[key] === '')) {
+                    showAlert(tg, 'Заполните все поля анкеты');
+                    return;
+                }
+            }
+
+            try {
+                const res = await fetch('/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const json = await res.json();
+
+                if (json.success) {
+                    showAlert(tg, 'Анкета отправлена! Ожидайте проверки.');
+                    form.reset();
+                    document.querySelector('.tab[data-tab="profile"]').click();
+                } else {
+                    showAlert(tg, json.message || 'Ошибка отправки анкеты');
+                }
+            } catch (err) {
+                console.error('Submit error:', err);
+                showAlert(tg, 'Ошибка подключения к серверу');
+            }
+        });
+    }
+
+    // Автозагрузка профиля, если вкладка активна
+    if (document.querySelector('.tab[data-tab="profile"]').classList.contains('active')) {
+        loadProfile(tg);
     }
 });
 
-// Загрузка профиля
-async function loadProfile() {
-    const userId = tg.initDataUnsafe.user?.id || 123456;
-    const userName = tg.initDataUnsafe.user?.first_name || 'Пользователь';
-    
-    document.getElementById('userName').textContent = userName;
-    document.getElementById('userId').textContent = userId;
-    
-    try {
-        const response = await fetch(`/api/user_status/${userId}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            const app = data.application;
-            const statusText = {
-                'pending': '⏳ Ожидает проверки',
-                'approved': '✅ Одобрена',
-                'rejected': '❌ Отклонена'
-            }[app.status] || '❓ Неизвестно';
-            
-            document.querySelector('.status-pending').textContent = statusText;
-            document.querySelector('.status-pending').className = `status-${app.status}`;
-        } else {
-            document.querySelector('.status-pending').textContent = '📝 Анкета не подана';
-        }
-    } catch (error) {
-        console.error('Ошибка загрузки профиля:', error);
-        document.querySelector('.status-pending').textContent = '❌ Ошибка загрузки';
+function showAlert(tg, message) {
+    if (tg && tg.showAlert) {
+        tg.showAlert(message);
+    } else {
+        alert(message);
     }
 }
 
-// Загрузить профиль при открытии страницы
-if (document.querySelector('.tab[data-tab="profile"]').classList.contains('active')) {
-    loadProfile();
-}
+async function loadProfile(tg) {
+    const userId = tg?.initDataUnsafe?.user?.id || 0;
+    const userName = tg?.initDataUnsafe?.user?.first_name || 'Пользователь';
 
+    document.getElementById('userName').textContent = userName;
+    document.getElementById('userId').textContent = userId || '—';
+
+    if (!userId) {
+        document.getElementById('statusText').textContent = 'Открыто вне Telegram';
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/user_status/${userId}`);
+        const json = await res.json();
+
+        const statusSpan = document.getElementById('statusText');
+
+        if (json.success && json.application) {
+            const st = json.application.status;
+            let text = 'Неизвестно';
+            let cls = 'status-pending';
+
+            if (st === 'pending') { text = '⏳ Ожидает проверки'; cls = 'status-pending'; }
+            else if (st === 'approved') { text = '✅ Одобрена'; cls = 'status-approved'; }
+            else if (st === 'rejected') { text = '❌ Отклонена'; cls = 'status-rejected'; }
+
+            statusSpan.textContent = text;
+            statusSpan.className = cls;
+        } else {
+            statusSpan.textContent = 'Анкета не подана';
+            statusSpan.className = 'status-pending';
+        }
+    } catch (err) {
+        console.error('Profile load error:', err);
+        const statusSpan = document.getElementById('statusText');
+        statusSpan.textContent = 'Ошибка загрузки статуса';
+        statusSpan.className = 'status-pending';
+    }
+}
