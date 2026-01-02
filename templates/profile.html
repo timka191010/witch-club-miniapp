@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Мой профиль</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { max-width: 600px; margin: 0 auto; }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 30px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .profile-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .profile-item { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .profile-item:last-child { border-bottom: none; }
+    .profile-label { font-size: 14px; color: #888; margin-bottom: 5px; }
+    .profile-value { font-size: 18px; color: #fff; }
+    .status {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .status.pending { background: #ffa500; color: #000; }
+    .status.approved { background: #4caf50; color: #fff; }
+    .status.rejected { background: #f44336; color: #fff; }
+    .loading, .error {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+    }
+    .error { color: #f44336; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚙️ Мой профиль</h1>
+    <div id="content" class="loading">Загрузка...</div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const userId = tg.initDataUnsafe?.user?.id || 12345;
+
+    fetch(`/api/user_status/${userId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const app = data.application;
+          const statusText = {
+            pending: 'Ожидает проверки',
+            approved: 'Одобрено',
+            rejected: 'Отклонено'
+          };
+          document.getElementById('content').innerHTML = `
+            <div class="profile-card">
+              <div class="profile-item">
+                <div class="profile-label">Имя:</div>
+                <div class="profile-value">${app.name}</div>
+              </div>
+              <div class="profile-item">
+                <div class="profile-label">ID:</div>
+                <div class="profile-value">${app.user_id}</div>
+              </div>
+              <div class="profile-item">
+                <div class="profile-label">Статус анкеты:</div>
+                <div class="profile-value">
+                  <span class="status ${app.status}">${statusText[app.status] || app.status}</span>
+                </div>
+              </div>
+              <div class="profile-item">
+                <div class="profile-label">Возраст:</div>
+                <div class="profile-value">${app.age}</div>
+              </div>
+              <div class="profile-item">
+                <div class="profile-label">Дата подачи:</div>
+                <div class="profile-value">
+                  ${app.created_at ? new Date(app.created_at).toLocaleDateString('ru-RU') : '-'}
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          document.getElementById('content').innerHTML =
+            `<div class="error">${data.message || 'Анкета не найдена'}</div>`;
+        }
+      })
+      .catch(() => {
+        document.getElementById('content').innerHTML =
+          '<div class="error">Ошибка загрузки</div>';
+      });
+  </script>
+</body>
+</html>
