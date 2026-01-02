@@ -128,12 +128,17 @@ def user_status(user_id):
         application = cur.fetchone()
         cur.close()
         conn.close()
-        if application:
-            return jsonify({'success': True, 'application': application})
-        return jsonify({'success': False, 'message': 'Анкета не найдена'})
+        
+        return jsonify({
+            'success': True,
+            'application': dict(application) if application else None
+        })
     except Exception as e:
-        print(f"Error fetching user status: {e}")
-        return jsonify({'success': False, 'message': 'Ошибка сервера'})
+        print(f"User status error for {user_id}: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Ошибка проверки статуса'
+        }), 500
 
 # ==================== ADMIN ====================
 
@@ -166,7 +171,7 @@ def admin_applications():
         applications = cur.fetchall()
         cur.close()
         conn.close()
-        return jsonify({'success': True, 'applications': applications})
+        return jsonify({'success': True, 'applications': [dict(app) for app in applications]})
     except Exception as e:
         print(f"Error fetching applications: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при загрузке'})
@@ -187,7 +192,7 @@ def admin_application_data(app_id):
         cur.close()
         conn.close()
         if application:
-            return jsonify({'success': True, 'application': application})
+            return jsonify({'success': True, 'application': dict(application)})
         return jsonify({'success': False, 'message': 'Заявка не найдена'})
     except Exception as e:
         print(f"Error fetching application: {e}")
@@ -229,7 +234,12 @@ def admin_stats_data():
         recent = cur.fetchall()
         cur.close()
         conn.close()
-        return jsonify({'success': True, 'total': total, 'by_status': by_status, 'recent': recent})
+        return jsonify({
+            'success': True, 
+            'total': total, 
+            'by_status': [dict(item) for item in by_status],
+            'recent': [dict(item) for item in recent]
+        })
     except Exception as e:
         print(f"Error fetching stats: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при загрузке'})
