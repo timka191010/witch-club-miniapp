@@ -1,34 +1,25 @@
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-# ЗАМЕНИ НА СВОЙ ТОКЕН ОТ @BotFather
-TOKEN = "8500508012:AAEMuWXEsZsUfiDiOV50xFw928Tn7VUJRH8"
+TOKEN = "8500508012:AAEMuWXEsZsUfiDiOV50xFw928Tn7VUJRH8"  # токен от BotFather
+
+WEBAPP_URL = "https://witch-club-miniapp.vercel.app"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Отправляет кнопку для открытия Mini App"""
     keyboard = [[KeyboardButton(
         "🌙 Открыть Клуб Ведьм",
-        web_app=WebAppInfo(url="https://witch-club-miniapp.vercel.app")
+        web_app=WebAppInfo(url=WEBAPP_URL)
     )]]
-    
     await update.message.reply_text(
-        "✨ Добро пожаловать в Клуб Ведьм!\n\n"
-        "Нажми кнопку ниже, чтобы заполнить анкету:",
+        "✨ Добро пожаловать в Клуб Ведьм!\n\nНажми кнопку ниже, чтобы открыть приложение:",
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     )
 
 def main():
-    """Запускает бота"""
     app = Application.builder().token(TOKEN).build()
-    
-    # Команда /start
     app.add_handler(CommandHandler("start", start))
-    
-    print("✅ Бот запущен!")
-    print("Отправь боту команду /start")
-    
-    # Запуск
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    print("✅ Бот запущен. Напиши ему /start")
+    app.run_polling()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
