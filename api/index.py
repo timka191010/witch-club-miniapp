@@ -3,15 +3,15 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 from functools import wraps
 import psycopg2
 from psycopg2.extras import RealDictCursor
-import random
-from datetime import datetime
 
-# Get the base directory
+# ==== PATHS FOR VERCEL ====
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-app = Flask(__name__, 
-            template_folder=os.path.join(BASE_DIR, 'templates'),
-            static_folder=os.path.join(BASE_DIR, 'static'))
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
 app.secret_key = os.getenv('SECRET_KEY', 'witch_club_secret_key_2026')
 
 # ==================== DATABASE ====================
@@ -20,10 +20,8 @@ def get_db_connection():
     DATABASE_URL = os.getenv('POSTGRES_URL')
     if not DATABASE_URL:
         raise Exception("POSTGRES_URL environment variable not set")
-    
-    # Neon requires SSL
     conn = psycopg2.connect(
-        DATABASE_URL, 
+        DATABASE_URL,
         cursor_factory=RealDictCursor,
         sslmode='require'
     )
@@ -33,7 +31,6 @@ def init_db():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
         cur.execute('''
             CREATE TABLE IF NOT EXISTS applications (
                 id SERIAL PRIMARY KEY,
@@ -50,7 +47,6 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        
         conn.commit()
         cur.close()
         conn.close()
@@ -58,7 +54,6 @@ def init_db():
     except Exception as e:
         print(f"Database initialization error: {e}")
 
-# Initialize database on startup
 try:
     init_db()
 except Exception as e:
@@ -74,7 +69,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ==================== ROUTES ====================
+# ==================== PUBLIC ROUTES ====================
 
 @app.route('/')
 def index():
@@ -83,21 +78,19 @@ def index():
 @app.route('/submit', methods=['POST'])
 def submit_application():
     try:
-        data = request.json
-        
+        data = request.get_json()
+
         conn = get_db_connection()
         cur = conn.cursor()
-        
-        # Check if user already applied
+
         cur.execute('SELECT * FROM applications WHERE user_id = %s', (data['user_id'],))
         existing = cur.fetchone()
-        
+
         if existing:
             cur.close()
             conn.close()
             return jsonify({'success': False, 'message': 'Вы уже подавали заявку!'})
-        
-        # Insert new application
+
         cur.execute('''
             INSERT INTO applications 
             (user_id, name, age, family_status, children, hobbies, themes, goal, source, status)
@@ -114,15 +107,38 @@ def submit_application():
             data['source'],
             'pending'
         ))
-        
+
         conn.commit()
         cur.close()
         conn.close()
-        
+
         return jsonify({'success': True, 'message': 'Анкета отправлена!'})
     except Exception as e:
         print(f"Error submitting application: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при отправке'})
+
+# ==================== PROFILE ====================
+
+@app.route('/profile')
+def profile():
+    return render_template('profile.html')
+
+@app.route('/api/user_status/<int:user_id>')
+def user_status(user_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM applications WHERE user_id = %s', (user_id,))
+        application = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if application:
+            return jsonify({'success': True, 'application': application})
+        return jsonify({'success': False, 'message': 'Анкета не найдена'})
+    except Exception as e:
+        print(f"Error fetching user status: {e}")
+        return jsonify({'success': False, 'message': 'Ошибка сервера'})
 
 # ==================== ADMIN ====================
 
@@ -134,12 +150,10 @@ def admin_login():
 
 @app.route('/admin/login', methods=['POST'])
 def admin_login_post():
-    data = request.json
-    
+    data = request.get_json()
     if data['username'] == 'admin' and data['password'] == 'witch2026':
         session['admin_logged_in'] = True
         return jsonify({'success': True})
-    
     return jsonify({'success': False, 'message': 'Неверные данные'})
 
 @app.route('/admin/dashboard')
@@ -157,7 +171,6 @@ def admin_applications():
         applications = cur.fetchall()
         cur.close()
         conn.close()
-        
         return jsonify({'success': True, 'applications': applications})
     except Exception as e:
         print(f"Error fetching applications: {e}")
@@ -178,7 +191,6 @@ def admin_application_data(app_id):
         application = cur.fetchone()
         cur.close()
         conn.close()
-        
         if application:
             return jsonify({'success': True, 'application': application})
         return jsonify({'success': False, 'message': 'Заявка не найдена'})
@@ -190,16 +202,14 @@ def admin_application_data(app_id):
 @login_required
 def update_application_status(app_id):
     try:
-        data = request.json
+        data = request.get_json()
         status = data['status']
-        
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('UPDATE applications SET status = %s WHERE id = %s', (status, app_id))
         conn.commit()
         cur.close()
         conn.close()
-        
         return jsonify({'success': True})
     except Exception as e:
         print(f"Error updating status: {e}")
@@ -216,28 +226,15 @@ def admin_stats_data():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
-        # Total applications
         cur.execute('SELECT COUNT(*) as count FROM applications')
         total = cur.fetchone()['count']
-        
-        # By status
         cur.execute('SELECT status, COUNT(*) as count FROM applications GROUP BY status')
         by_status = cur.fetchall()
-        
-        # Recent applications
         cur.execute('SELECT * FROM applications ORDER BY created_at DESC LIMIT 10')
         recent = cur.fetchall()
-        
         cur.close()
         conn.close()
-        
-        return jsonify({
-            'success': True,
-            'total': total,
-            'by_status': by_status,
-            'recent': recent
-        })
+        return jsonify({'success': True, 'total': total, 'by_status': by_status, 'recent': recent})
     except Exception as e:
         print(f"Error fetching stats: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при загрузке'})
@@ -249,5 +246,4 @@ def admin_logout():
 
 # ==================== VERCEL ====================
 
-# For Vercel serverless
 app.debug = False
