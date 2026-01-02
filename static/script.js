@@ -5,24 +5,27 @@ document.addEventListener('DOMContentLoaded', () => {
         tg.expand();
     }
 
-    // Переключение табов
+    // ==================== ТАБЫ ====================
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
             const tabName = tab.dataset.tab;
 
+            // Убрать активные классы со всех табов и контента
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
+            // Добавить активные классы на выбранный таб и его контент
             tab.classList.add('active');
             document.getElementById(tabName).classList.add('active');
 
+            // Загрузить профиль если открыта вкладка профиля
             if (tabName === 'profile') {
                 loadProfile(tg);
             }
         });
     });
 
-    // Обработчик формы
+    // ==================== ФОРМА ====================
     const form = document.getElementById('applicationForm');
     if (form) {
         form.addEventListener('submit', async (e) => {
@@ -30,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const fd = new FormData(form);
             const data = {
-                user_id: tg?.initDataUnsafe?.user?.id || 0,
+                user_id: tg?.initDataUnsafe?.user?.id || Math.floor(Math.random() * 1000000),
                 name: fd.get('name').trim(),
                 age: fd.get('age').trim(),
                 family_status: fd.get('family_status').trim(),
@@ -41,10 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 source: fd.get('source').trim()
             };
 
-            // Простая проверка пустых полей
+            // Проверка пустых полей
             for (const key in data) {
                 if (key !== 'user_id' && (!data[key] || data[key] === '')) {
-                    showAlert(tg, 'Заполните все поля анкеты');
+                    showAlert(tg, '❌ Заполните все поля анкеты');
                     return;
                 }
             }
@@ -58,24 +61,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 const json = await res.json();
 
                 if (json.success) {
-                    showAlert(tg, 'Анкета отправлена! Ожидайте проверки.');
+                    showAlert(tg, '✅ Анкета отправлена! Ожидайте проверки.');
                     form.reset();
+                    // Переключиться на вкладку профиля
                     document.querySelector('.tab[data-tab="profile"]').click();
                 } else {
-                    showAlert(tg, json.message || 'Ошибка отправки анкеты');
+                    showAlert(tg, json.message || '❌ Ошибка отправки анкеты');
                 }
             } catch (err) {
                 console.error('Submit error:', err);
-                showAlert(tg, 'Ошибка подключения к серверу');
+                showAlert(tg, '❌ Ошибка подключения к серверу');
             }
         });
     }
 
-    // Автозагрузка профиля, если вкладка активна
-    if (document.querySelector('.tab[data-tab="profile"]').classList.contains('active')) {
+    // Загрузить профиль если вкладка уже активна при загрузке страницы
+    if (document.querySelector('.tab[data-tab="profile"]')?.classList.contains('active')) {
         loadProfile(tg);
     }
 });
+
+// ==================== ФУНКЦИИ ====================
 
 function showAlert(tg, message) {
     if (tg && tg.showAlert) {
@@ -89,39 +95,68 @@ async function loadProfile(tg) {
     const userId = tg?.initDataUnsafe?.user?.id || 0;
     const userName = tg?.initDataUnsafe?.user?.first_name || 'Пользователь';
 
+    // Мгновенно обновляем имя и ID
     document.getElementById('userName').textContent = userName;
     document.getElementById('userId').textContent = userId || '—';
 
+    // Если нет Telegram user_id — показываем сообщение
     if (!userId) {
-        document.getElementById('statusText').textContent = 'Открыто вне Telegram';
+        const statusSpan = document.getElementById('statusText');
+        statusSpan.textContent = '📱 Откройте в Telegram боте';
+        statusSpan.className = 'status-pending';
         return;
     }
 
+    const statusSpan = document.getElementById('statusText');
+    statusSpan.textContent = '🔄 Проверяем статус...';
+    statusSpan.className = 'status-pending';
+
     try {
-        const res = await fetch(`/api/user_status/${userId}`);
-        const json = await res.json();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 сек таймаут
 
-        const statusSpan = document.getElementById('statusText');
+        const response = await fetch(`/api/user_status/${userId}`, {
+            signal: controller.signal
+        });
 
-        if (json.success && json.application) {
-            const st = json.application.status;
-            let text = 'Неизвестно';
-            let cls = 'status-pending';
+        clearTimeout(timeoutId);
 
-            if (st === 'pending') { text = '⏳ Ожидает проверки'; cls = 'status-pending'; }
-            else if (st === 'approved') { text = '✅ Одобрена'; cls = 'status-approved'; }
-            else if (st === 'rejected') { text = '❌ Отклонена'; cls = 'status-rejected'; }
+        const json = await response.json();
 
-            statusSpan.textContent = text;
-            statusSpan.className = cls;
+        if (json.success) {
+            if (json.application) {
+                const st = json.application.status;
+                let text = '', cls = 'status-pending';
+
+                switch (st) {
+                    case 'pending':
+                        text = '⏳ Ожидает проверки';
+                        break;
+                    case 'approved':
+                        text = '✅ Одобрена! Добро пожаловать!';
+                        cls = 'status-approved';
+                        break;
+                    case 'rejected':
+                        text = '❌ Отклонена';
+                        cls = 'status-rejected';
+                        break;
+                    default:
+                        text = '❓ Неизвестный статус';
+                }
+
+                statusSpan.textContent = text;
+                statusSpan.className = cls;
+            } else {
+                statusSpan.textContent = '📝 Анкета не подана';
+                statusSpan.className = 'status-pending';
+            }
         } else {
-            statusSpan.textContent = 'Анкета не подана';
-            statusSpan.className = 'status-pending';
+            statusSpan.textContent = '⚠️ Ошибка проверки';
+            statusSpan.className = 'status-rejected';
         }
-    } catch (err) {
-        console.error('Profile load error:', err);
-        const statusSpan = document.getElementById('statusText');
-        statusSpan.textContent = 'Ошибка загрузки статуса';
+    } catch (error) {
+        console.error('Profile error:', error.name, error.message);
+        statusSpan.textContent = '⚠️ Ошибка загрузки';
         statusSpan.className = 'status-pending';
     }
 }
