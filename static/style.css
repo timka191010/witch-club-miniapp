@@ -17,7 +17,7 @@ body {
     padding: 20px;
 }
 
-/* ТАБЫ */
+/* Табы */
 .tabs {
     display: flex;
     gap: 10px;
@@ -41,7 +41,7 @@ body {
     font-weight: bold;
 }
 
-/* КОНТЕНТ */
+/* Контент табов */
 .tab-content {
     display: none;
 }
@@ -56,7 +56,7 @@ h1 {
     text-align: center;
 }
 
-/* ФОРМА */
+/* Форма */
 form {
     display: flex;
     flex-direction: column;
@@ -92,7 +92,7 @@ textarea {
     transform: translateY(-2px);
 }
 
-/* УЧАСТНИЦЫ */
+/* Участницы */
 .members-grid {
     display: flex;
     flex-direction: column;
@@ -122,7 +122,7 @@ textarea {
     opacity: 0.8;
 }
 
-/* ПРОФИЛЬ */
+/* Профиль */
 .profile-info {
     background: rgba(255, 255, 255, 0.1);
     padding: 20px;
@@ -148,4 +148,3 @@ textarea {
     color: #f44336;
     font-weight: bold;
 }
-
