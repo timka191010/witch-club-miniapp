@@ -71,52 +71,16 @@ def login_required(f):
 
 # ==================== PUBLIC ROUTES ====================
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
-    # Список участниц клуба
     members = [
-        {
-            'name': 'Мария Зуева',
-            'title': 'Верховная Ведьма',
-            'emoji': '🔮',
-            'title_emoji': '👑'
-        },
-        {
-            'name': 'Юлия Пиндюрина',
-            'title': 'Ведьма Звёздного Пути',
-            'emoji': '✨',
-            'title_emoji': '⭐'
-        },
-        {
-            'name': 'Елена Клыкова',
-            'title': 'Ведьма Трав и Эликсиров',
-            'emoji': '🌿',
-            'title_emoji': '🌿'
-        },
-        {
-            'name': 'Наталья Гудкова',
-            'title': 'Ведьма Огненного Круга',
-            'emoji': '🕯️',
-            'title_emoji': '🔥'
-        },
-        {
-            'name': 'Екатерина Когай',
-            'title': 'Ведьма Лунного Света',
-            'emoji': '🌙',
-            'title_emoji': '🌙'
-        },
-        {
-            'name': 'Елена Пустовит',
-            'title': 'Ведьма Кристаллов',
-            'emoji': '💎',
-            'title_emoji': '💎'
-        },
-        {
-            'name': 'Елена Провосуд',
-            'title': 'Ведьма Грозовых Ветров',
-            'emoji': '⚡',
-            'title_emoji': '⚡'
-        }
+        {'name': 'Мария Зуева', 'title': 'Верховная Ведьма', 'emoji': '🔮', 'title_emoji': '👑'},
+        {'name': 'Юлия Пиндюрина', 'title': 'Ведьма Звёздного Пути', 'emoji': '✨', 'title_emoji': '⭐'},
+        {'name': 'Елена Клыкова', 'title': 'Ведьма Трав и Эликсиров', 'emoji': '🌿', 'title_emoji': '🌿'},
+        {'name': 'Наталья Гудкова', 'title': 'Ведьма Огненного Круга', 'emoji': '🕯️', 'title_emoji': '🔥'},
+        {'name': 'Екатерина Когай', 'title': 'Ведьма Лунного Света', 'emoji': '🌙', 'title_emoji': '🌙'},
+        {'name': 'Елена Пустовит', 'title': 'Ведьма Кристаллов', 'emoji': '💎', 'title_emoji': '💎'},
+        {'name': 'Елена Провосуд', 'title': 'Ведьма Грозовых Ветров', 'emoji': '⚡', 'title_emoji': '⚡'}
     ]
     return render_template('index.html', members=members)
 
@@ -124,39 +88,26 @@ def index():
 def submit_application():
     try:
         data = request.get_json()
-
         conn = get_db_connection()
         cur = conn.cursor()
-
         cur.execute('SELECT * FROM applications WHERE user_id = %s', (data['user_id'],))
         existing = cur.fetchone()
-
         if existing:
             cur.close()
             conn.close()
             return jsonify({'success': False, 'message': 'Вы уже подавали заявку!'})
-
         cur.execute('''
             INSERT INTO applications 
             (user_id, name, age, family_status, children, hobbies, themes, goal, source, status)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ''', (
-            data['user_id'],
-            data['name'],
-            data['age'],
-            data['family_status'],
-            data['children'],
-            data['hobbies'],
-            data['themes'],
-            data['goal'],
-            data['source'],
-            'pending'
+            data['user_id'], data['name'], data['age'], data['family_status'],
+            data['children'], data['hobbies'], data['themes'], data['goal'],
+            data['source'], 'pending'
         ))
-
         conn.commit()
         cur.close()
         conn.close()
-
         return jsonify({'success': True, 'message': 'Анкета отправлена!'})
     except Exception as e:
         print(f"Error submitting application: {e}")
@@ -164,11 +115,11 @@ def submit_application():
 
 # ==================== PROFILE ====================
 
-@app.route('/profile')
+@app.route('/profile', methods=['GET'])
 def profile():
     return render_template('profile.html')
 
-@app.route('/api/user_status/<int:user_id>')
+@app.route('/api/user_status/<int:user_id>', methods=['GET'])
 def user_status(user_id):
     try:
         conn = get_db_connection()
@@ -177,7 +128,6 @@ def user_status(user_id):
         application = cur.fetchone()
         cur.close()
         conn.close()
-
         if application:
             return jsonify({'success': True, 'application': application})
         return jsonify({'success': False, 'message': 'Анкета не найдена'})
@@ -187,7 +137,7 @@ def user_status(user_id):
 
 # ==================== ADMIN ====================
 
-@app.route('/admin')
+@app.route('/admin', methods=['GET', 'POST'])
 def admin_login():
     if 'admin_logged_in' in session:
         return redirect(url_for('admin_dashboard'))
@@ -196,17 +146,17 @@ def admin_login():
 @app.route('/admin/login', methods=['POST'])
 def admin_login_post():
     data = request.get_json()
-    if data['username'] == 'admin' and data['password'] == 'witch2026':
+    if data.get('username') == 'admin' and data.get('password') == 'witch2026':
         session['admin_logged_in'] = True
         return jsonify({'success': True})
     return jsonify({'success': False, 'message': 'Неверные данные'})
 
-@app.route('/admin/dashboard')
+@app.route('/admin/dashboard', methods=['GET'])
 @login_required
 def admin_dashboard():
     return render_template('admin_dashboard.html')
 
-@app.route('/admin/applications')
+@app.route('/admin/applications', methods=['GET'])
 @login_required
 def admin_applications():
     try:
@@ -221,12 +171,12 @@ def admin_applications():
         print(f"Error fetching applications: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при загрузке'})
 
-@app.route('/admin/application/<int:app_id>')
+@app.route('/admin/application/<int:app_id>', methods=['GET'])
 @login_required
 def admin_view_application(app_id):
     return render_template('admin_view_application.html', app_id=app_id)
 
-@app.route('/admin/application/<int:app_id>/data')
+@app.route('/admin/application/<int:app_id>/data', methods=['GET'])
 @login_required
 def admin_application_data(app_id):
     try:
@@ -260,12 +210,12 @@ def update_application_status(app_id):
         print(f"Error updating status: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при обновлении'})
 
-@app.route('/admin/stats')
+@app.route('/admin/stats', methods=['GET'])
 @login_required
 def admin_stats():
     return render_template('admin_stats.html')
 
-@app.route('/admin/stats/data')
+@app.route('/admin/stats/data', methods=['GET'])
 @login_required
 def admin_stats_data():
     try:
@@ -284,7 +234,7 @@ def admin_stats_data():
         print(f"Error fetching stats: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при загрузке'})
 
-@app.route('/admin/logout')
+@app.route('/admin/logout', methods=['GET'])
 def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect(url_for('admin_login'))
