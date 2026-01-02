@@ -5,9 +5,9 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     min-height: 100vh;
 }
 
@@ -17,56 +17,46 @@ body {
     padding: 20px;
 }
 
-/* Навигация */
+/* ТАБЫ */
 .tabs {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 10px;
-    border-radius: 15px;
 }
 
 .tab {
     flex: 1;
     padding: 12px;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
-    color: #fff;
-    cursor: pointer;
     border-radius: 10px;
+    color: white;
     font-size: 14px;
+    cursor: pointer;
     transition: all 0.3s;
 }
 
 .tab.active {
-    background: linear-gradient(135deg, #8B008B, #4B0082);
-    box-shadow: 0 4px 15px rgba(139, 0, 139, 0.4);
+    background: rgba(255, 255, 255, 0.3);
+    font-weight: bold;
 }
 
-/* Вкладки контента */
+/* КОНТЕНТ */
 .tab-content {
     display: none;
-    animation: fadeIn 0.3s;
 }
 
 .tab-content.active {
     display: block;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 h1 {
-    text-align: center;
-    margin-bottom: 20px;
     font-size: 24px;
-    text-shadow: 0 0 20px rgba(139, 0, 139, 0.8);
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-/* Форма */
+/* ФОРМА */
 form {
     display: flex;
     flex-direction: column;
@@ -75,15 +65,10 @@ form {
 
 input, textarea, select {
     padding: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: none;
     border-radius: 10px;
-    color: #fff;
-    font-size: 14px;
-}
-
-input::placeholder, textarea::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
 }
 
 textarea {
@@ -93,10 +78,10 @@ textarea {
 
 .btn-submit {
     padding: 15px;
-    background: linear-gradient(135deg, #8B008B, #4B0082);
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     border: none;
     border-radius: 10px;
-    color: #fff;
+    color: white;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
@@ -105,14 +90,9 @@ textarea {
 
 .btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(139, 0, 139, 0.5);
 }
 
-.btn-submit:active {
-    transform: scale(0.98);
-}
-
-/* Участницы */
+/* УЧАСТНИЦЫ */
 .members-grid {
     display: flex;
     flex-direction: column;
@@ -121,23 +101,15 @@ textarea {
 
 .member-card {
     background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 15px;
+    padding: 15px;
+    border-radius: 10px;
     display: flex;
     gap: 15px;
     align-items: center;
-    transition: transform 0.2s;
-}
-
-.member-card:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.15);
 }
 
 .member-emoji {
     font-size: 40px;
-    min-width: 50px;
-    text-align: center;
 }
 
 .member-info h3 {
@@ -146,29 +118,34 @@ textarea {
 }
 
 .member-title {
-    color: #FFD700;
-    font-weight: bold;
-    margin-bottom: 5px;
+    font-size: 14px;
+    opacity: 0.8;
 }
 
-.member-role {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-/* Профиль */
+/* ПРОФИЛЬ */
 .profile-info {
     background: rgba(255, 255, 255, 0.1);
     padding: 20px;
-    border-radius: 15px;
+    border-radius: 10px;
 }
 
 .profile-info p {
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 10px;
+    font-size: 16px;
 }
 
 .status-pending {
-    color: #FFA500;
+    color: #ffa500;
     font-weight: bold;
 }
+
+.status-approved {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.status-rejected {
+    color: #f44336;
+    font-weight: bold;
+}
+
