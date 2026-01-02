@@ -3,197 +3,321 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Просмотр анкеты</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Просмотр заявки</title>
     <style>
-        body {
-            background: linear-gradient(135deg, #1a0033, #330066);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
         }
-        .back-btn {
-            display: inline-block;
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #333;
+        }
+
+        .btn {
             padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: white;
+            border-radius: 10px;
             text-decoration: none;
-            margin-bottom: 20px;
+            font-weight: 600;
+            background: #667eea;
+            color: white;
+            transition: transform 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
         }
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+
+        .btn:hover {
+            transform: translateY(-2px);
         }
-        .application-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
+
+        .card {
+            background: white;
             border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
+
         .field {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
+
         .field-label {
-            color: #FFD700;
-            font-weight: bold;
-            margin-bottom: 5px;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 600;
         }
+
         .field-value {
-            color: rgba(255, 255, 255, 0.9);
-            line-height: 1.6;
+            font-size: 16px;
+            color: #333;
+            line-height: 1.5;
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
         }
+
         .actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             margin-top: 30px;
-            flex-wrap: wrap;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
         }
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
+
         .btn-approve {
-            background: #00FF00;
-            color: #000;
+            background: #4caf50;
         }
-        .btn-approve:hover {
-            background: #00CC00;
-        }
+
         .btn-reject {
-            background: #FF4444;
+            background: #f44336;
         }
-        .btn-reject:hover {
-            background: #CC0000;
+
+        .btn-pending {
+            background: #ffa500;
         }
-        .btn-club {
-            background: linear-gradient(135deg, #8B008B, #4B0082);
-            font-weight: bold;
-        }
-        .btn-club:hover {
-            background: linear-gradient(135deg, #6A006A, #360059);
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 8px 15px;
-            border-radius: 20px;
+
+        .current-status {
+            padding: 8px 16px;
+            border-radius: 25px;
             font-size: 14px;
-            font-weight: bold;
+            font-weight: 600;
             margin-bottom: 20px;
+            text-align: center;
         }
+
         .status-pending {
-            background: rgba(255, 165, 0, 0.2);
-            color: #FFA500;
-            border: 1px solid #FFA500;
+            background: #fff3cd;
+            color: #856404;
         }
+
         .status-approved {
-            background: rgba(0, 255, 0, 0.2);
-            color: #00FF00;
-            border: 1px solid #00FF00;
+            background: #d4edda;
+            color: #155724;
         }
+
         .status-rejected {
-            background: rgba(255, 68, 68, 0.2);
-            color: #FF4444;
-            border: 1px solid #FF4444;
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .header, .actions {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="{{ url_for('admin_dashboard') }}" class="back-btn">◀️ Назад</a>
-        
-        <h1>📋 Анкета #{{ app.id }}</h1>
-        
-        <div>
-            {% if app.status == 'approved' %}
-                <span class="status-badge status-approved">✅ Одобрена</span>
-            {% elif app.status == 'rejected' %}
-                <span class="status-badge status-rejected">❌ Отклонена</span>
-            {% else %}
-                <span class="status-badge status-pending">⏳ Ожидает проверки</span>
-            {% endif %}
+        <div class="header">
+            <h1>📋 Заявка #<span id="appId">—</span></h1>
+            <a href="/admin/dashboard" class="btn">← Назад в дашборд</a>
         </div>
 
-        <div class="application-card">
-            <div class="field">
-                <div class="field-label">👤 Имя:</div>
-                <div class="field-value">{{ app.name }}</div>
-            </div>
-
-            <div class="field">
-                <div class="field-label">📅 Дата рождения:</div>
-                <div class="field-value">{{ app.age }}</div>
-            </div>
-
-            <div class="field">
-                <div class="field-label">💍 Семейное положение:</div>
-                <div class="field-value">{{ app.family_status }}</div>
-            </div>
-
-            <div class="field">
-                <div class="field-label">👶 Дети:</div>
-                <div class="field-value">{{ app.children }}</div>
-            </div>
-
-            <div class="field">
-                <div class="field-label">🎨 Увлечения и хобби:</div>
-                <div class="field-value">{{ app.hobbies }}</div>
-            </div>
-
-            <div class="field">
-                <div class="field-label">💡 Интересные темы:</div>
-                <div class="field-value">{{ app.themes }}</div>
-            </div>
-
-            <div class="field">
-                <div class="field-label">🎯 Цель вступления:</div>
-                <div class="field-value">{{ app.goal }}</div>
-            </div>
-
-            <div class="field">
-                <div class="field-label">📣 Откуда узнали:</div>
-                <div class="field-value">{{ app.source }}</div>
-            </div>
-
-            <div class="field">
-                <div class="field-label">🕒 Дата подачи:</div>
-                <div class="field-value">{{ app.created_at }}</div>
-            </div>
-
-            <div class="field">
-                <div class="field-label">🆔 User ID:</div>
-                <div class="field-value">{{ app.user_id }}</div>
-            </div>
-        </div>
-
-        <div class="actions">
-            {% if app.status != 'approved' %}
-            <form method="POST" action="{{ url_for('approve_application', app_id=app.id) }}" style="display: inline;">
-                <button type="submit" class="btn btn-approve">✅ Одобрить</button>
-            </form>
-            {% endif %}
-
-            {% if app.status != 'rejected' %}
-            <form method="POST" action="{{ url_for('reject_application', app_id=app.id) }}" style="display: inline;">
-                <button type="submit" class="btn btn-reject">❌ Отклонить</button>
-            </form>
-            {% endif %}
-
-            {% if app.status == 'approved' %}
-            <form method="POST" action="{{ url_for('add_to_club', app_id=app.id) }}" style="display: inline;">
-                <button type="submit" class="btn btn-club">🌟 Добавить в участники клуба</button>
-            </form>
-            {% endif %}
+        <div id="content" class="loading">
+            <div style="margin-top: 20px;">🔄 Загружаем данные заявки...</div>
         </div>
     </div>
+
+    <script>
+        // Безопасная вставка app_id из Jinja
+        const appId = {{ app_id | int }};
+        document.getElementById('appId').textContent = appId;
+
+        async function loadApplication() {
+            try {
+                const response = await fetch(`/admin/application/${appId}/data`);
+                const data = await response.json();
+
+                if (data.success && data.application) {
+                    const app = data.application;
+                    renderApplication(app);
+                } else {
+                    showError('Заявка не найдена');
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                showError('Ошибка загрузки данных заявки');
+            }
+        }
+
+        function renderApplication(app) {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="card">
+                    <div class="current-status status-${app.status}">
+                        Текущий статус: ${
+                            app.status === 'pending' ? '⏳ Ожидает проверки' :
+                            app.status === 'approved' ? '✅ Одобрена' :
+                            app.status === 'rejected' ? '❌ Отклонена' : 'Неизвестно'
+                        }
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Имя</div>
+                        <div class="field-value">${escapeHtml(app.name)}</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Возраст</div>
+                        <div class="field-value">${escapeHtml(app.age)} лет</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Семейное положение</div>
+                        <div class="field-value">${escapeHtml(app.family_status)}</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Дети</div>
+                        <div class="field-value">${escapeHtml(app.children)}</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Увлечения и хобби</div>
+                        <div class="field-value">${escapeHtml(app.hobbies)}</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Интересные темы</div>
+                        <div class="field-value">${escapeHtml(app.themes)}</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Цель вступления</div>
+                        <div class="field-value">${escapeHtml(app.goal)}</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Откуда узнали</div>
+                        <div class="field-value">${escapeHtml(app.source)}</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Дата подачи</div>
+                        <div class="field-value">${formatDate(app.created_at)}</div>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn btn-approve" onclick="updateStatus('approved')">✅ Одобрить</button>
+                        <button class="btn btn-pending" onclick="updateStatus('pending')">⏳ В ожидание</button>
+                        <button class="btn btn-reject" onclick="updateStatus('rejected')">❌ Отклонить</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function updateStatus(status) {
+            try {
+                const response = await fetch(`/admin/application/${appId}/status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ Статус обновлён!');
+                    loadApplication(); // Перезагрузить данные
+                } else {
+                    alert('❌ Ошибка при обновлении статуса');
+                }
+            } catch (error) {
+                console.error('Status update error:', error);
+                alert('❌ Ошибка подключения');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('content').innerHTML = `
+                <div class="card">
+                    <div class="error">${message}</div>
+                    <a href="/admin/dashboard" class="btn">← Вернуться назад</a>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function formatDate(dateStr) {
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleString('ru-RU', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        // Загрузить данные при открытии страницы
+        loadApplication();
+    </script>
 </body>
 </html>
