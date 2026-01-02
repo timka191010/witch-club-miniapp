@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр анкеты</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a0033, #330066);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .application-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .field {
+            margin-bottom: 20px;
+        }
+        .field-label {
+            color: #FFD700;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .field-value {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-approve {
+            background: #00FF00;
+            color: #000;
+        }
+        .btn-approve:hover {
+            background: #00CC00;
+        }
+        .btn-reject {
+            background: #FF4444;
+        }
+        .btn-reject:hover {
+            background: #CC0000;
+        }
+        .btn-club {
+            background: linear-gradient(135deg, #8B008B, #4B0082);
+            font-weight: bold;
+        }
+        .btn-club:hover {
+            background: linear-gradient(135deg, #6A006A, #360059);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .status-pending {
+            background: rgba(255, 165, 0, 0.2);
+            color: #FFA500;
+            border: 1px solid #FFA500;
+        }
+        .status-approved {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00FF00;
+            border: 1px solid #00FF00;
+        }
+        .status-rejected {
+            background: rgba(255, 68, 68, 0.2);
+            color: #FF4444;
+            border: 1px solid #FF4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('admin_dashboard') }}" class="back-btn">◀️ Назад</a>
+        
+        <h1>📋 Анкета #{{ app.id }}</h1>
+        
+        <div>
+            {% if app.status == 'approved' %}
+                <span class="status-badge status-approved">✅ Одобрена</span>
+            {% elif app.status == 'rejected' %}
+                <span class="status-badge status-rejected">❌ Отклонена</span>
+            {% else %}
+                <span class="status-badge status-pending">⏳ Ожидает проверки</span>
+            {% endif %}
+        </div>
+
+        <div class="application-card">
+            <div class="field">
+                <div class="field-label">👤 Имя:</div>
+                <div class="field-value">{{ app.name }}</div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">📅 Дата рождения:</div>
+                <div class="field-value">{{ app.age }}</div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">💍 Семейное положение:</div>
+                <div class="field-value">{{ app.family_status }}</div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">👶 Дети:</div>
+                <div class="field-value">{{ app.children }}</div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">🎨 Увлечения и хобби:</div>
+                <div class="field-value">{{ app.hobbies }}</div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">💡 Интересные темы:</div>
+                <div class="field-value">{{ app.themes }}</div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">🎯 Цель вступления:</div>
+                <div class="field-value">{{ app.goal }}</div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">📣 Откуда узнали:</div>
+                <div class="field-value">{{ app.source }}</div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">🕒 Дата подачи:</div>
+                <div class="field-value">{{ app.created_at }}</div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">🆔 User ID:</div>
+                <div class="field-value">{{ app.user_id }}</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            {% if app.status != 'approved' %}
+            <form method="POST" action="{{ url_for('approve_application', app_id=app.id) }}" style="display: inline;">
+                <button type="submit" class="btn btn-approve">✅ Одобрить</button>
+            </form>
+            {% endif %}
+
+            {% if app.status != 'rejected' %}
+            <form method="POST" action="{{ url_for('reject_application', app_id=app.id) }}" style="display: inline;">
+                <button type="submit" class="btn btn-reject">❌ Отклонить</button>
+            </form>
+            {% endif %}
+
+            {% if app.status == 'approved' %}
+            <form method="POST" action="{{ url_for('add_to_club', app_id=app.id) }}" style="display: inline;">
+                <button type="submit" class="btn btn-club">🌟 Добавить в участники клуба</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

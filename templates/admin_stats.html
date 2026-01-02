@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика клуба</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a0033, #330066);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .stats-section {
+            margin-bottom: 40px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .chart-bar {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .bar-label {
+            min-width: 180px;
+            font-weight: bold;
+        }
+        .bar-progress {
+            flex: 1;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #8B008B, #4B0082);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            transition: width 0.5s ease;
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #FFD700;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('admin_dashboard') }}" class="back-btn">◀️ Назад в панель</a>
+        
+        <h1>📊 Статистика Клуба Ведьм</h1>
+
+        <!-- Общая статистика -->
+        <div class="stats-section">
+            <h2>📈 Общая статистика</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.total }}</div>
+                    <div class="stat-label">Всего анкет</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #00FF00;">{{ stats.approved }}</div>
+                    <div class="stat-label">✅ Одобрено</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #FFA500;">{{ stats.pending }}</div>
+                    <div class="stat-label">⏳ На проверке</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #FF4444;">{{ stats.rejected }}</div>
+                    <div class="stat-label">❌ Отклонено</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #9370DB;">{{ stats.members_count }}</div>
+                    <div class="stat-label">👥 Участниц клуба</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Семейное положение -->
+        <div class="stats-section">
+            <h2>💍 Семейное положение</h2>
+            <div class="chart-bar">
+                <div class="bar-label">💍 Замужем</div>
+                <div class="bar-progress">
+                    <div class="bar-fill" style="width: {{ (stats.married / stats.total * 100) if stats.total > 0 else 0 }}%;">
+                        {{ stats.married }}
+                    </div>
+                </div>
+            </div>
+            <div class="chart-bar">
+                <div class="bar-label">💫 Свободна</div>
+                <div class="bar-progress">
+                    <div class="bar-fill" style="width: {{ (stats.single / stats.total * 100) if stats.total > 0 else 0 }}%;">
+                        {{ stats.single }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Дети -->
+        <div class="stats-section">
+            <h2>👶 Наличие детей</h2>
+            <div class="chart-bar">
+                <div class="bar-label">👶 С детьми</div>
+                <div class="bar-progress">
+                    <div class="bar-fill" style="width: {{ (stats.with_kids / stats.total * 100) if stats.total > 0 else 0 }}%;">
+                        {{ stats.with_kids }}
+                    </div>
+                </div>
+            </div>
+            <div class="chart-bar">
+                <div class="bar-label">🌸 Без детей</div>
+                <div class="bar-progress">
+                    <div class="bar-fill" style="width: {{ (stats.no_kids / stats.total * 100) if stats.total > 0 else 0 }}%;">
+                        {{ stats.no_kids }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Источники -->
+        <div class="stats-section">
+            <h2>📣 Откуда узнали о клубе</h2>
+            {% for source, count in stats.sources.items() %}
+            <div class="chart-bar">
+                <div class="bar-label">{{ source }}</div>
+                <div class="bar-progress">
+                    <div class="bar-fill" style="width: {{ (count / stats.total * 100) if stats.total > 0 else 0 }}%;">
+                        {{ count }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</body>
+</html>
