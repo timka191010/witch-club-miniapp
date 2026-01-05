@@ -5,375 +5,146 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     min-height: 100vh;
-    padding: 20px;
-    color: #333;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 600px;
     margin: 0 auto;
+    padding: 20px;
 }
 
-/* ==================== ШАПКА ==================== */
-
-.header {
-    text-align: center;
-    margin-bottom: 30px;
-    color: white;
-}
-
-.header h1 {
-    font-size: 32px;
-    margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-}
-
-.subtitle {
-    font-size: 16px;
-    opacity: 0.9;
-}
-
-/* ==================== ТАБЫ ==================== */
-
+/* Табы */
 .tabs {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
-    background: rgba(255,255,255,0.2);
-    padding: 10px;
-    border-radius: 15px;
-    backdrop-filter: blur(10px);
 }
 
 .tab {
     flex: 1;
-    padding: 12px 20px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
     border-radius: 10px;
-    background: rgba(255,255,255,0.3);
     color: white;
     font-size: 14px;
-    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
 }
 
-.tab:hover {
-    background: rgba(255,255,255,0.4);
-    transform: translateY(-2px);
-}
-
 .tab.active {
-    background: white;
-    color: #667eea;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    background: rgba(255, 255, 255, 0.3);
+    font-weight: bold;
 }
 
-/* ==================== КОНТЕНТ ТАБОВ ==================== */
-
+/* Контент табов */
 .tab-content {
     display: none;
-    animation: fadeIn 0.3s;
 }
 
 .tab-content.active {
     display: block;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.tab-content h2 {
-    color: white;
+h1 {
     font-size: 24px;
     margin-bottom: 20px;
     text-align: center;
 }
 
-/* ==================== УЧАСТНИЦЫ ==================== */
+/* Форма */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
 
+input, textarea, select {
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+}
+
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.btn-submit {
+    padding: 15px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+}
+
+/* Участницы */
 .members-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .member-card {
-    background: white;
-    border-radius: 15px;
-    padding: 25px;
-    text-align: center;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.member-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
 }
 
 .member-emoji {
-    font-size: 48px;
-    margin-bottom: 15px;
+    font-size: 40px;
 }
 
-.member-name {
+.member-info h3 {
     font-size: 18px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
 }
 
 .member-title {
     font-size: 14px;
-    color: #666;
+    opacity: 0.8;
 }
 
-/* ==================== ФОРМА АНКЕТЫ ==================== */
-
-.application-form {
-    background: white;
-    border-radius: 15px;
-    padding: 30px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 8px;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #eee;
+/* Профиль */
+.profile-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
     border-radius: 10px;
+}
+
+.profile-info p {
+    margin-bottom: 10px;
     font-size: 16px;
-    font-family: inherit;
-    transition: border-color 0.3s;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #667eea;
-}
-
-.form-group textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-.submit-btn {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 18px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-.submit-btn:active {
-    transform: translateY(0);
-}
-
-/* ==================== ПРОФИЛЬ ==================== */
-
-.profile-card {
-    background: white;
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.profile-field {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #eee;
-}
-
-.profile-field:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.profile-label {
-    font-size: 12px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-    font-weight: 600;
-}
-
-.profile-value {
-    font-size: 18px;
-    color: #333;
-    font-weight: 600;
-}
-
-.profile-status {
-    margin-top: 5px;
-}
-
-.profile-status span {
-    display: inline-block;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
 }
 
 .status-pending {
-    background: #fff3cd;
-    color: #856404;
+    color: #ffa500;
+    font-weight: bold;
 }
 
 .status-approved {
-    background: #d4edda;
-    color: #155724;
+    color: #4caf50;
+    font-weight: bold;
 }
 
 .status-rejected {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.profile-info {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.profile-info h3 {
-    font-size: 18px;
-    color: #333;
-    margin-bottom: 15px;
-}
-
-.profile-info ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.profile-info li {
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
-    color: #666;
-    font-size: 14px;
-}
-
-.profile-info li:last-child {
-    border-bottom: none;
-}
-
-.profile-info strong {
-    color: #333;
-}
-
-/* ==================== АДАПТИВ ==================== */
-
-@media (max-width: 768px) {
-    .header h1 {
-        font-size: 24px;
-    }
-
-    .subtitle {
-        font-size: 14px;
-    }
-
-    .tabs {
-        flex-direction: column;
-    }
-
-    .tab {
-        width: 100%;
-    }
-
-    .members-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .application-form {
-        padding: 20px;
-    }
-
-    .profile-card,
-    .profile-info {
-        padding: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
-
-    .header h1 {
-        font-size: 20px;
-    }
-
-    .tab-content h2 {
-        font-size: 20px;
-    }
-
-    .member-card {
-        padding: 20px;
-    }
-
-    .member-emoji {
-        font-size: 36px;
-    }
-
-    .member-name {
-        font-size: 16px;
-    }
-
-    .form-group input,
-    .form-group textarea {
-        font-size: 14px;
-    }
-
-    .submit-btn {
-        font-size: 16px;
-    }
+    color: #f44336;
+    font-weight: bold;
 }
