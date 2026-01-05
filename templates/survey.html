@@ -8,61 +8,74 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>🔮 Клуб Ведьм "По Мётлам"</h1>
-            <p class="subtitle">Закрытое женское сообщество</p>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>🔮 Клуб Ведьм</h1>
+            <p class="subtitle">"По Мётлам"</p>
         </header>
 
-        <nav class="navigation">
-            <a href="/survey" class="nav-btn active">📝 Анкета</a>
-            <a href="/" class="nav-btn">👥 Участницы</a>
-            <a href="/profile" class="nav-btn">⚙️ Профиль</a>
+        <nav class="app-nav">
+            <a href="/" class="nav-item">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">Участницы</span>
+            </a>
+            <a href="/survey" class="nav-item active">
+                <span class="nav-icon">📝</span>
+                <span class="nav-text">Анкета</span>
+            </a>
+            <a href="/profile" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Профиль</span>
+            </a>
         </nav>
 
-        <section class="form-section">
-            <h2>📝 Заполните анкету</h2>
-            <form id="applicationForm" class="application-form">
-                <div class="form-group">
-                    <label for="name">Ваше имя:</label>
-                    <input type="text" id="name" name="name" required placeholder="Введите имя">
-                </div>
+        <main class="app-main">
+            <section class="form-section">
+                <h2>📝 Заполните анкету</h2>
+                <form id="surveyForm" class="survey-form">
+                    
+                    <div class="form-group">
+                        <label for="name">Имя:</label>
+                        <input type="text" id="name" name="name" required placeholder="Введите ваше имя">
+                    </div>
 
-                <div class="form-group">
-                    <label for="age">Возраст:</label>
-                    <input type="number" id="age" name="age" required placeholder="Введите возраст">
-                </div>
+                    <div class="form-group">
+                        <label for="age">Возраст:</label>
+                        <input type="number" id="age" name="age" required placeholder="Введите возраст">
+                    </div>
 
-                <div class="form-group">
-                    <label for="experience">Опыт в магии (лет):</label>
-                    <input type="number" id="experience" name="experience" placeholder="0">
-                </div>
+                    <div class="form-group">
+                        <label>Замужем или свободна?</label>
+                        <div class="button-group">
+                            <button type="button" class="btn-toggle" data-value="married" onclick="toggleButton(this, 'status')">💍 Замужем</button>
+                            <button type="button" class="btn-toggle" data-value="single" onclick="toggleButton(this, 'status')">✨ Свободна</button>
+                        </div>
+                        <input type="hidden" id="status" name="status" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="specialty">Специализация:</label>
-                    <select id="specialty" name="specialty" required>
-                        <option value="">Выберите специализацию</option>
-                        <option value="tarot">Таро</option>
-                        <option value="herbs">Травничество</option>
-                        <option value="astrology">Астрология</option>
-                        <option value="energy">Энергетика</option>
-                        <option value="other">Другое</option>
-                    </select>
-                </div>
+                    <div class="form-group">
+                        <label>Есть ли дети?</label>
+                        <div class="button-group">
+                            <button type="button" class="btn-toggle" data-value="yes" onclick="toggleButton(this, 'children')">👶 Да</button>
+                            <button type="button" class="btn-toggle" data-value="no" onclick="toggleButton(this, 'children')">❌ Нет</button>
+                        </div>
+                        <input type="hidden" id="children" name="children" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="about">О себе:</label>
-                    <textarea id="about" name="about" rows="4" placeholder="Расскажите о себе..."></textarea>
-                </div>
+                    <div class="form-group">
+                        <label for="topic">Интересная тема для мастер-классов:</label>
+                        <textarea id="topic" name="topic" rows="3" placeholder="О чём вы хотите узнать..."></textarea>
+                    </div>
 
-                <div class="form-group checkbox">
-                    <input type="checkbox" id="agree" name="agree" required>
-                    <label for="agree">Я согласен(а) с правилами клуба</label>
-                </div>
+                    <div class="form-group">
+                        <label for="source">Откуда узнала про клуб?</label>
+                        <input type="text" id="source" name="source" placeholder="От подруги, из соцсетей и т.д.">
+                    </div>
 
-                <button type="submit" class="btn-submit">📤 Отправить анкету</button>
-            </form>
-        </section>
+                    <button type="submit" class="btn-submit">📤 Отправить</button>
+                </form>
+            </section>
+        </main>
     </div>
 
     <script>
@@ -72,35 +85,38 @@
             tg.expand();
         }
 
-        document.getElementById('applicationForm').addEventListener('submit', async (e) => {
+        function toggleButton(button, fieldId) {
+            const group = button.parentElement;
+            group.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+            document.getElementById(fieldId).value = button.dataset.value;
+        }
+
+        document.getElementById('surveyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const formData = {
                 name: document.getElementById('name').value,
                 age: document.getElementById('age').value,
-                experience: document.getElementById('experience').value,
-                specialty: document.getElementById('specialty').value,
-                about: document.getElementById('about').value
+                status: document.getElementById('status').value,
+                children: document.getElementById('children').value,
+                topic: document.getElementById('topic').value,
+                source: document.getElementById('source').value
             };
 
             try {
                 const response = await fetch('/submit_survey', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
 
                 if (response.ok) {
                     alert('✨ Анкета отправлена!');
-                    document.getElementById('applicationForm').reset();
-                } else {
-                    alert('❌ Ошибка при отправке');
+                    window.location.href = '/';
                 }
             } catch (error) {
-                console.error('Ошибка:', error);
-                alert('❌ Ошибка подключения');
+                alert('❌ Ошибка');
             }
         });
     </script>
