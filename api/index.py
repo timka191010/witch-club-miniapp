@@ -132,6 +132,8 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# ==================== ПОЛЬЗОВАТЕЛЬСКИЕ СТРАНИЦЫ ====================
+
 @app.route('/', methods=['GET'])
 def index():
     try:
@@ -196,6 +198,14 @@ def index():
         ]
         return render_template('index.html', members=members)
 
+@app.route('/survey', methods=['GET'])
+def survey():
+    return render_template('survey.html')
+
+@app.route('/profile', methods=['GET'])
+def profile():
+    return render_template('profile.html')
+
 @app.route('/submit', methods=['POST'])
 def submit_application():
     try:
@@ -225,10 +235,6 @@ def submit_application():
         print(f"Error submitting application: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при отправке'})
 
-@app.route('/profile', methods=['GET'])
-def profile():
-    return render_template('profile.html')
-
 @app.route('/api/user_status/<int:user_id>', methods=['GET'])
 def user_status(user_id):
     try:
@@ -249,6 +255,8 @@ def user_status(user_id):
             'success': False,
             'message': 'Ошибка проверки статуса'
         }), 500
+
+# ==================== АДМИНКА ====================
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_login():
