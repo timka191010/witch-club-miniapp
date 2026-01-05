@@ -36,12 +36,15 @@ body {
 
 .navigation {
     display: flex;
+    flex-direction: row;
     gap: 10px;
     margin-bottom: 30px;
+    justify-content: center;
 }
 
 .nav-btn {
     flex: 1;
+    max-width: 200px;
     padding: 15px 20px;
     background: rgba(255,255,255,0.2);
     color: white;
@@ -287,11 +290,12 @@ body {
     }
 
     .navigation {
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
     }
 
     .nav-btn {
-        width: 100%;
+        min-width: 120px;
     }
 
     .members-grid {
@@ -315,6 +319,14 @@ body {
 
     .header h1 {
         font-size: 20px;
+    }
+
+    .navigation {
+        flex-direction: column;
+    }
+
+    .nav-btn {
+        max-width: 100%;
     }
 
     .member-card {
