@@ -1,24 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    const tg = window.Telegram?.WebApp || null;
 
     if (tg) {
         tg.expand();
+        tg.ready();
     }
+
+    console.log('Telegram WebApp:', tg);
+    console.log('User data:', tg?.initDataUnsafe?.user);
 
     // ==================== ТАБЫ ====================
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
             const tabName = tab.dataset.tab;
 
-            // Убрать активные классы со всех табов и контента
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-            // Добавить активные классы на выбранный таб и его контент
             tab.classList.add('active');
             document.getElementById(tabName).classList.add('active');
 
-            // Загрузить профиль если открыта вкладка профиля
             if (tabName === 'profile') {
                 loadProfile(tg);
             }
@@ -44,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 source: fd.get('source').trim()
             };
 
-            // Проверка пустых полей
             for (const key in data) {
                 if (key !== 'user_id' && (!data[key] || data[key] === '')) {
                     showAlert(tg, '❌ Заполните все поля анкеты');
@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (json.success) {
                     showAlert(tg, '✅ Анкета отправлена! Ожидайте проверки.');
                     form.reset();
-                    // Переключиться на вкладку профиля
                     document.querySelector('.tab[data-tab="profile"]').click();
                 } else {
                     showAlert(tg, json.message || '❌ Ошибка отправки анкеты');
@@ -75,13 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Загрузить профиль если вкладка уже активна при загрузке страницы
-    if (document.querySelector('.tab[data-tab="profile"]')?.classList.contains('active')) {
-        loadProfile(tg);
+    // Загрузить профиль при старте если вкладка активна
+    const profileTab = document.getElementById('profile');
+    if (profileTab && profileTab.classList.contains('active')) {
+        setTimeout(() => loadProfile(tg), 100);
     }
 });
-
-// ==================== ФУНКЦИИ ====================
 
 function showAlert(tg, message) {
     if (tg && tg.showAlert) {
@@ -92,44 +90,60 @@ function showAlert(tg, message) {
 }
 
 async function loadProfile(tg) {
-    const userId = tg?.initDataUnsafe?.user?.id || 0;
-    const userName = tg?.initDataUnsafe?.user?.first_name || 'Пользователь';
+    console.log('loadProfile called');
+    console.log('Telegram object:', tg);
+    console.log('Init data:', tg?.initDataUnsafe);
 
-    console.log('Loading profile for:', { userId, userName });
-
-    // Проверяем, существуют ли элементы
     const userNameEl = document.getElementById('userName');
     const userIdEl = document.getElementById('userId');
     const statusSpan = document.getElementById('statusText');
 
     if (!userNameEl || !userIdEl || !statusSpan) {
-        console.error('Profile elements not found!');
+        console.error('Profile elements not found!', { userNameEl, userIdEl, statusSpan });
         return;
     }
 
-    // Мгновенно обновляем имя и ID
+    // Получаем данные пользователя
+    let userId = 0;
+    let userName = 'Тестовый пользователь';
+
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        userId = tg.initDataUnsafe.user.id || 0;
+        userName = tg.initDataUnsafe.user.first_name || tg.initDataUnsafe.user.username || 'Пользователь';
+    }
+
+    console.log('Extracted data:', { userId, userName });
+
+    // СРАЗУ ОБНОВЛЯЕМ ИМЯ И ID
     userNameEl.textContent = userName;
     userIdEl.textContent = userId || '—';
 
-    // Если нет Telegram user_id — показываем сообщение
+    // Если нет userId (не в Telegram) - показываем заглушку
     if (!userId) {
         statusSpan.textContent = '📱 Откройте в Telegram боте';
         statusSpan.className = 'status-pending';
         return;
     }
 
+    // ЗАГРУЖАЕМ СТАТУС АНКЕТЫ
     statusSpan.textContent = '🔄 Проверяем статус...';
     statusSpan.className = 'status-pending';
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 сек таймаут
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        console.log('Fetching status for user:', userId);
 
         const response = await fetch(`/api/user_status/${userId}`, {
             signal: controller.signal
         });
 
         clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const json = await response.json();
         console.log('User status response:', json);
@@ -142,6 +156,7 @@ async function loadProfile(tg) {
                 switch (st) {
                     case 'pending':
                         text = '⏳ Ожидает проверки';
+                        cls = 'status-pending';
                         break;
                     case 'approved':
                         text = '✅ Одобрена! Добро пожаловать!';
@@ -166,7 +181,7 @@ async function loadProfile(tg) {
             statusSpan.className = 'status-rejected';
         }
     } catch (error) {
-        console.error('Profile error:', error.name, error.message);
+        console.error('Profile loading error:', error);
         if (error.name === 'AbortError') {
             statusSpan.textContent = '⚠️ Превышено время ожидания';
         } else {
