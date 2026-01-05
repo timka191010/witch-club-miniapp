@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 from functools import wraps
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import random
 
 # ==== PATHS FOR VERCEL ====
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,6 +32,7 @@ def init_db():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
+        
         cur.execute('''
             CREATE TABLE IF NOT EXISTS applications (
                 id SERIAL PRIMARY KEY,
@@ -47,6 +49,19 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS club_members (
+                id SERIAL PRIMARY KEY,
+                user_id BIGINT NOT NULL UNIQUE,
+                real_name TEXT NOT NULL,
+                witch_name TEXT NOT NULL,
+                witch_title TEXT NOT NULL,
+                emoji TEXT NOT NULL,
+                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
         conn.commit()
         cur.close()
         conn.close()
@@ -58,6 +73,63 @@ try:
     init_db()
 except Exception as e:
     print(f"Failed to initialize database: {e}")
+
+# ==================== ГЕНЕРАЦИЯ ИМЕНИ ВЕДЬМЫ ====================
+
+def generate_witch_name(real_name):
+    """Генерирует уникальное имя ведьмы на основе настоящего имени"""
+    
+    prefixes = [
+        "Тёмная", "Светлая", "Лунная", "Звёздная",
+        "Огненная", "Водная", "Ледяная", "Грозовая", "Ветряная",
+        "Таинственная", "Древняя", "Мудрая", "Вечная", "Ночная",
+        "Серебряная", "Золотая", "Багровая", "Изумрудная", "Сапфировая",
+        "Загадочная", "Могущественная", "Прекрасная", "Дикая", "Свободная",
+        "Величественная", "Безмолвная", "Шёпчущая", "Поющая", "Танцующая",
+        "Блуждающая", "Странствующая", "Вещая", "Провидящая", "Всевидящая",
+        "Хрустальная", "Жемчужная", "Бархатная", "Шелковая", "Атласная"
+    ]
+    
+    titles = [
+        "Ведьма Лунного Света", "Ведьма Звёздного Пути", 
+        "Ведьма Огненного Круга", "Ведьма Грозовых Ветров",
+        "Ведьма Трав и Эликсиров", "Ведьма Кристаллов",
+        "Ведьма Тёмного Леса", "Ведьма Серебряных Рун",
+        "Ведьма Вечного Пламени", "Ведьма Небесных Врат",
+        "Хранительница Древних Тайн", "Повелительница Стихий",
+        "Госпожа Теней", "Владычица Снов", "Королева Ночи",
+        "Ведьма Алых Закатов", "Ведьма Бирюзовых Волн",
+        "Ведьма Шёпота Ветра", "Ведьма Танца Пламени",
+        "Ведьма Зеркальных Озёр", "Ведьма Горных Вершин",
+        "Хранительница Рассвета", "Повелительница Туманов",
+        "Госпожа Морозных Узоров", "Владычица Цветущих Полей",
+        "Ведьма Звёздной Пыли", "Ведьма Лунных Дорожек",
+        "Ведьма Радужных Мостов", "Ведьма Северного Сияния",
+        "Хранительница Сокровенных Знаний", "Повелительница Времени",
+        "Госпожа Вечности", "Владычица Судеб",
+        "Ведьма Серебряного Зеркала", "Ведьма Золотого Ключа",
+        "Ведьма Изумрудного Сада", "Ведьма Сапфирового Неба",
+        "Ведьма Алмазных Россыпей", "Ведьма Янтарных Слёз",
+        "Хранительница Забытых Миров", "Повелительница Иллюзий"
+    ]
+    
+    emojis = [
+        "🔮", "✨", "🌙", "⚡", "🕯️", "💎", "🌿", "🔥", "❄️", "🌟",
+        "🌺", "🦋", "🐉", "🦅", "🦢", "🌸", "🍃", "💫", "⭐", "🌊",
+        "🏔️", "🌈", "☄️", "🌪️", "🌑", "🌕", "🌗", "🌘", "🪐", "🌌",
+        "🦉", "🕷️", "🌹", "🥀", "🍄", "🗝️", "📿", "🧿", "🔱", "⚜️"
+    ]
+    
+    prefix = random.choice(prefixes)
+    witch_name = f"{prefix} {real_name}"
+    title = random.choice(titles)
+    emoji = random.choice(emojis)
+    
+    return {
+        "witch_name": witch_name,
+        "title": title,
+        "emoji": emoji
+    }
 
 # ==================== HELPERS ====================
 
@@ -73,16 +145,27 @@ def login_required(f):
 
 @app.route('/', methods=['GET'])
 def index():
-    members = [
-        {'name': 'Мария Зуева', 'title': 'Верховная Ведьма', 'emoji': '🔮', 'title_emoji': '👑'},
-        {'name': 'Юлия Пиндюрина', 'title': 'Ведьма Звёздного Пути', 'emoji': '✨', 'title_emoji': '⭐'},
-        {'name': 'Елена Клыкова', 'title': 'Ведьма Трав и Эликсиров', 'emoji': '🌿', 'title_emoji': '🌿'},
-        {'name': 'Наталья Гудкова', 'title': 'Ведьма Огненного Круга', 'emoji': '🕯️', 'title_emoji': '🔥'},
-        {'name': 'Екатерина Когай', 'title': 'Ведьма Лунного Света', 'emoji': '🌙', 'title_emoji': '🌙'},
-        {'name': 'Елена Пустовит', 'title': 'Ведьма Кристаллов', 'emoji': '💎', 'title_emoji': '💎'},
-        {'name': 'Елена Провосуд', 'title': 'Ведьма Грозовых Ветров', 'emoji': '⚡', 'title_emoji': '⚡'}
-    ]
-    return render_template('index.html', members=members)
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM club_members ORDER BY added_at DESC')
+        members = cur.fetchall()
+        cur.close()
+        conn.close()
+        
+        members_list = [{
+            'name': m['witch_name'],
+            'title': m['witch_title'],
+            'emoji': m['emoji']
+        } for m in members]
+        
+        return render_template('index.html', members=members_list)
+    except Exception as e:
+        print(f"Index error: {e}")
+        members = [
+            {'name': 'Мария Зуева', 'title': 'Верховная Ведьма', 'emoji': '🔮'}
+        ]
+        return render_template('index.html', members=members)
 
 @app.route('/submit', methods=['POST'])
 def submit_application():
@@ -214,6 +297,56 @@ def update_application_status(app_id):
     except Exception as e:
         print(f"Error updating status: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при обновлении'})
+
+# ==================== ДОБАВЛЕНИЕ В КЛУБ ====================
+
+@app.route('/admin/application/<int:app_id>/add_to_club', methods=['POST'])
+@login_required
+def add_to_club(app_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM applications WHERE id = %s', (app_id,))
+        app = cur.fetchone()
+        
+        if not app:
+            return jsonify({'success': False, 'message': 'Заявка не найдена'})
+        
+        cur.execute('SELECT * FROM club_members WHERE user_id = %s', (app['user_id'],))
+        existing = cur.fetchone()
+        if existing:
+            cur.close()
+            conn.close()
+            return jsonify({'success': False, 'message': 'Уже в клубе!'})
+        
+        witch_data = generate_witch_name(app['name'])
+        
+        cur.execute('''
+            INSERT INTO club_members (user_id, real_name, witch_name, witch_title, emoji)
+            VALUES (%s, %s, %s, %s, %s)
+        ''', (
+            app['user_id'],
+            app['name'],
+            witch_data['witch_name'],
+            witch_data['title'],
+            witch_data['emoji']
+        ))
+        
+        cur.execute('UPDATE applications SET status = %s WHERE id = %s', ('approved', app_id))
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'witch_data': witch_data
+        })
+    except Exception as e:
+        print(f"Add to club error: {e}")
+        return jsonify({'success': False, 'message': 'Ошибка при добавлении'})
+
+# ==================== СТАТИСТИКА ====================
 
 @app.route('/admin/stats', methods=['GET'])
 @login_required
