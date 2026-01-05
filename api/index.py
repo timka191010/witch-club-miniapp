@@ -5,7 +5,6 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import random
 
-# ==== PATHS FOR VERCEL ====
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 app = Flask(
@@ -14,8 +13,6 @@ app = Flask(
     static_folder=os.path.join(BASE_DIR, 'static')
 )
 app.secret_key = os.getenv('SECRET_KEY', 'witch_club_secret_key_2026')
-
-# ==================== DATABASE ====================
 
 def get_db_connection():
     DATABASE_URL = os.getenv('POSTGRES_URL')
@@ -74,11 +71,7 @@ try:
 except Exception as e:
     print(f"Failed to initialize database: {e}")
 
-# ==================== ГЕНЕРАЦИЯ ИМЕНИ ВЕДЬМЫ ====================
-
 def generate_witch_name(real_name):
-    """Генерирует уникальное имя ведьмы на основе настоящего имени"""
-    
     prefixes = [
         "Тёмная", "Светлая", "Лунная", "Звёздная",
         "Огненная", "Водная", "Ледяная", "Грозовая", "Ветряная",
@@ -131,8 +124,6 @@ def generate_witch_name(real_name):
         "emoji": emoji
     }
 
-# ==================== HELPERS ====================
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -141,14 +132,12 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ==================== PUBLIC ROUTES ====================
-
 @app.route('/', methods=['GET'])
 def index():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('SELECT * FROM club_members ORDER BY added_at DESC')
+        cur.execute('SELECT * FROM club_members ORDER BY added_at ASC')
         members = cur.fetchall()
         cur.close()
         conn.close()
@@ -159,9 +148,18 @@ def index():
             'emoji': m['emoji']
         } for m in members]
         
+        # ДОБАВЛЯЕМ МАРИЮ ЗУЕВУ В НАЧАЛО ЕСЛИ ЕЁ НЕТ В БД
+        if not any(m['name'] == 'Мария Зуева' for m in members_list):
+            members_list.insert(0, {
+                'name': 'Мария Зуева',
+                'title': 'Верховная Ведьма',
+                'emoji': '🔮'
+            })
+        
         return render_template('index.html', members=members_list)
     except Exception as e:
         print(f"Index error: {e}")
+        # Fallback на Марию Зуеву
         members = [
             {'name': 'Мария Зуева', 'title': 'Верховная Ведьма', 'emoji': '🔮'}
         ]
@@ -196,8 +194,6 @@ def submit_application():
         print(f"Error submitting application: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при отправке'})
 
-# ==================== PROFILE ====================
-
 @app.route('/profile', methods=['GET'])
 def profile():
     return render_template('profile.html')
@@ -222,8 +218,6 @@ def user_status(user_id):
             'success': False,
             'message': 'Ошибка проверки статуса'
         }), 500
-
-# ==================== ADMIN ====================
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_login():
@@ -298,8 +292,6 @@ def update_application_status(app_id):
         print(f"Error updating status: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при обновлении'})
 
-# ==================== ДОБАВЛЕНИЕ В КЛУБ ====================
-
 @app.route('/admin/application/<int:app_id>/add_to_club', methods=['POST'])
 @login_required
 def add_to_club(app_id):
@@ -346,7 +338,76 @@ def add_to_club(app_id):
         print(f"Add to club error: {e}")
         return jsonify({'success': False, 'message': 'Ошибка при добавлении'})
 
-# ==================== СТАТИСТИКА ====================
+@app.route('/admin/application/<int:app_id>/remove_from_club', methods=['POST'])
+@login_required
+def remove_from_club(app_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM applications WHERE id = %s', (app_id,))
+        app = cur.fetchone()
+        
+        if not app:
+            return jsonify({'success': False, 'message': 'Заявка не найдена'})
+        
+        cur.execute('DELETE FROM club_members WHERE user_id = %s', (app['user_id'],))
+        cur.execute('UPDATE applications SET status = %s WHERE id = %s', ('pending', app_id))
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Remove from club error: {e}")
+        return jsonify({'success': False, 'message': 'Ошибка при удалении'})
+
+@app.route('/admin/club_member/<int:user_id>/edit', methods=['POST'])
+@login_required
+def edit_club_member(user_id):
+    try:
+        data = request.get_json()
+        witch_name = data.get('witch_name', '').strip()
+        witch_title = data.get('witch_title', '').strip()
+        emoji = data.get('emoji', '').strip()
+        
+        if not witch_name or not witch_title or not emoji:
+            return jsonify({'success': False, 'message': 'Все поля обязательны'})
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('''
+            UPDATE club_members 
+            SET witch_name = %s, witch_title = %s, emoji = %s
+            WHERE user_id = %s
+        ''', (witch_name, witch_title, emoji, user_id))
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Edit club member error: {e}")
+        return jsonify({'success': False, 'message': 'Ошибка при редактировании'})
+
+@app.route('/admin/club_member/<int:user_id>/data', methods=['GET'])
+@login_required
+def get_club_member_data(user_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM club_members WHERE user_id = %s', (user_id,))
+        member = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if member:
+            return jsonify({'success': True, 'member': dict(member)})
+        return jsonify({'success': False, 'message': 'Участница не найдена'})
+    except Exception as e:
+        print(f"Get club member error: {e}")
+        return jsonify({'success': False, 'message': 'Ошибка при загрузке'})
 
 @app.route('/admin/stats', methods=['GET'])
 @login_required
@@ -381,7 +442,5 @@ def admin_stats_data():
 def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect(url_for('admin_login'))
-
-# ==================== VERCEL ====================
 
 app.debug = False
