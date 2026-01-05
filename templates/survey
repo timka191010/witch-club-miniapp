@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Клуб Ведьм</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🔮 Клуб Ведьм "Ведьмы не Стареют"</h1>
+            <p class="subtitle">Закрытое женское сообщество</p>
+        </header>
+
+        <div class="navigation">
+            <a href="/survey" class="nav-btn">📝 Анкета</a>
+            <a href="/" class="nav-btn active">👥 Участницы</a>
+            <a href="/profile" class="nav-btn">⚙️ Профиль</a>
+        </div>
+
+        <div class="members-section">
+            <h2>✨ Наши участницы</h2>
+            <div class="members-grid">
+                {% for member in members %}
+                <div class="member-card">
+                    <div class="member-emoji">{{ member.emoji }}</div>
+                    <div class="member-name">{{ member.name }}</div>
+                    <div class="member-title">{{ member.title }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
