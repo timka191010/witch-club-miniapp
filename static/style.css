@@ -1,274 +1,126 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анкета - Клуб Ведьм</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>🌙 Вступление в Клуб</h1>
+            <p class="subtitle">Заполните анкету</p>
+        </header>
 
-:root {
-    --primary: #8b7355;
-    --secondary: #d4a574;
-    --accent: #6b5b4a;
-    --light: #f5ede1;
-    --lighter: #faf8f3;
-    --text: #2c2c2c;
-    --text-light: #666;
-    --border: #e0d5c7;
-}
+        <nav class="app-nav">
+            <a href="/survey" class="nav-item active">
+                <span class="nav-icon">📝</span>
+                <span class="nav-text">Анкета</span>
+            </a>
+            <a href="/" class="nav-item">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">Участницы</span>
+            </a>
+            <a href="/profile" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Профиль</span>
+            </a>
+        </nav>
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--lighter);
-    color: var(--text);
-}
+        <main class="app-main">
+            <section class="form-section">
+                <h2>🔮 Вступление в Клуб</h2>
+                <form id="surveyForm" class="survey-form">
+                    
+                    <div class="form-group">
+                        <label for="name">Ваше имя</label>
+                        <input type="text" id="name" name="name" required placeholder="Введите ваше имя">
+                    </div>
 
-.app-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    background: var(--lighter);
-}
+                    <div class="form-group">
+                        <label for="birthDate">Дата рождения (ДД.МММ.ГГГГ)</label>
+                        <input type="text" id="birthDate" name="birthDate" placeholder="01.01.1990">
+                    </div>
 
-/* HEADER */
-.app-header {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-    color: white;
-    padding: 20px;
-    text-align: center;
-    border-bottom: 3px solid var(--secondary);
-}
+                    <div class="form-group">
+                        <label for="status">Семейное положение</label>
+                        <select id="status" name="status" required>
+                            <option value="">Выберите статус</option>
+                            <option value="married">Замужем</option>
+                            <option value="single">Свободна</option>
+                            <option value="divorced">Разведена</option>
+                        </select>
+                    </div>
 
-.app-header h1 {
-    font-size: 24px;
-    margin-bottom: 5px;
-}
+                    <div class="form-group">
+                        <label for="children">Дети (возраст, пол)</label>
+                        <input type="text" id="children" name="children" placeholder="Например: сын 10л, дочь 7л">
+                    </div>
 
-.app-header .subtitle {
-    font-size: 14px;
-    opacity: 0.9;
-}
+                    <div class="form-group">
+                        <label for="interests">Увлечения и хоббі</label>
+                        <textarea id="interests" name="interests" rows="3" placeholder="Расскажите о ваших интересах..."></textarea>
+                    </div>
 
-/* NAV */
-.app-nav {
-    display: flex;
-    background: white;
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
+                    <div class="form-group">
+                        <label for="topics">Интересные теми (МК, вызеды)</label>
+                        <textarea id="topics" name="topics" rows="3" placeholder="Какие темы вас интересуют..."></textarea>
+                    </div>
 
-.nav-item {
-    flex: 1;
-    padding: 12px;
-    text-align: center;
-    text-decoration: none;
-    color: var(--text-light);
-    border-bottom: 3px solid transparent;
-    transition: all 0.3s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
+                    <div class="form-group">
+                        <label for="goal">Цель вступления в клуб</label>
+                        <textarea id="goal" name="goal" rows="3" placeholder="Чего вы хотите добиться..."></textarea>
+                    </div>
 
-.nav-item.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-    background: rgba(139, 115, 85, 0.05);
-}
+                    <div class="form-group">
+                        <label for="source">Откуда узнали о клубе?</label>
+                        <input type="text" id="source" name="source" placeholder="От подруги, из соцсетей и т.д.">
+                    </div>
 
-.nav-icon {
-    font-size: 20px;
-}
+                    <button type="submit" class="btn-submit">✨ Отправить анкету</button>
+                </form>
+            </section>
+        </main>
+    </div>
 
-.nav-text {
-    font-size: 12px;
-}
+    <script>
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
 
-/* MAIN */
-.app-main {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-}
+        document.getElementById('surveyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                birthDate: document.getElementById('birthDate').value,
+                status: document.getElementById('status').value,
+                children: document.getElementById('children').value,
+                interests: document.getElementById('interests').value,
+                topics: document.getElementById('topics').value,
+                goal: document.getElementById('goal').value,
+                source: document.getElementById('source').value
+            };
 
-/* MEMBERS GRID */
-.members-section h2,
-.form-section h2,
-.profile-section h2 {
-    margin-bottom: 20px;
-    font-size: 20px;
-    color: var(--primary);
-}
+            try {
+                const response = await fetch('/submit_survey', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
 
-.members-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-}
-
-.member-card {
-    background: white;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    text-align: center;
-    transition: all 0.3s;
-    cursor: pointer;
-}
-
-.member-card:hover {
-    border-color: var(--secondary);
-    box-shadow: 0 4px 12px rgba(139, 115, 85, 0.15);
-}
-
-.member-emoji {
-    font-size: 40px;
-    margin-bottom: 8px;
-}
-
-.member-name {
-    font-weight: 600;
-    color: var(--primary);
-    margin-bottom: 4px;
-    font-size: 14px;
-}
-
-.member-title {
-    font-size: 12px;
-    color: var(--text-light);
-}
-
-/* FORM */
-.survey-form {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    border: 2px solid var(--border);
-}
-
-.form-group {
-    margin-bottom: 18px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: var(--primary);
-    font-size: 14px;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: inherit;
-    background: var(--light);
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: var(--secondary);
-    background: white;
-}
-
-.button-group {
-    display: flex;
-    gap: 10px;
-}
-
-.btn-toggle {
-    flex: 1;
-    padding: 12px;
-    border: 2px solid var(--border);
-    background: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s;
-    font-weight: 500;
-}
-
-.btn-toggle:hover {
-    border-color: var(--secondary);
-}
-
-.btn-toggle.active {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-}
-
-.btn-submit {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-submit:hover {
-    box-shadow: 0 4px 12px rgba(139, 115, 85, 0.3);
-}
-
-/* PROFILE */
-.profile-card {
-    background: white;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-}
-
-.profile-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.profile-item .label {
-    font-weight: 600;
-    color: var(--primary);
-}
-
-.profile-item .value {
-    color: var(--text-light);
-}
-
-.btn-logout {
-    width: 100%;
-    padding: 12px;
-    margin-top: 20px;
-    background: #d32f2f;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.no-profile {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.no-profile p {
-    margin-bottom: 20px;
-    color: var(--text-light);
-}
-
-.no-profile .btn-submit {
-    display: inline-block;
-    width: auto;
-    padding: 10px 20px;
-}
+                if (response.ok) {
+                    alert('✨ Анкета отправлена! Добро пожаловать в клуб!');
+                    setTimeout(() => window.location.href = '/', 1500);
+                }
+            } catch (error) {
+                alert('❌ Ошибка при отправке');
+            }
+        });
+    </script>
+</body>
+</html>
