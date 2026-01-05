@@ -8,27 +8,32 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>🔮 Клуб Ведьм "По Мётлам"</h1>
-            <p class="subtitle">Закрытое женское сообщество</p>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>🔮 Клуб Ведьм</h1>
+            <p class="subtitle">"По Мётлам"</p>
         </header>
 
-        <nav class="navigation">
-            <a href="/survey" class="nav-btn">📝 Анкета</a>
-            <a href="/" class="nav-btn">👥 Участницы</a>
-            <a href="/profile" class="nav-btn active">⚙️ Профиль</a>
+        <nav class="app-nav">
+            <a href="/" class="nav-item">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">Участницы</span>
+            </a>
+            <a href="/survey" class="nav-item">
+                <span class="nav-icon">📝</span>
+                <span class="nav-text">Анкета</span>
+            </a>
+            <a href="/profile" class="nav-item active">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Профиль</span>
+            </a>
         </nav>
 
-        <section class="profile-section">
-            <h2>⚙️ Мой профиль</h2>
-            <div class="profile-card">
-                <div class="profile-info" id="profileInfo">
-                    <p>Загрузка профиля...</p>
-                </div>
-                <button class="btn-logout" onclick="logout()">🚪 Выход</button>
-            </div>
-        </section>
+        <main class="app-main">
+            <section class="profile-section">
+                <div id="profileContent"></div>
+            </section>
+        </main>
     </div>
 
     <script>
@@ -42,28 +47,55 @@
             try {
                 const response = await fetch('/get_profile');
                 const data = await response.json();
-                
-                if (data.success) {
-                    const profile = data.profile;
-                    document.getElementById('profileInfo').innerHTML = `
-                        <p><strong>Имя:</strong> ${profile.name}</p>
-                        <p><strong>Возраст:</strong> ${profile.age}</p>
-                        <p><strong>Опыт:</strong> ${profile.experience} лет</p>
-                        <p><strong>Специализация:</strong> ${profile.specialty}</p>
-                        <p><strong>О себе:</strong> ${profile.about}</p>
+
+                if (data.success && data.profile) {
+                    const p = data.profile;
+                    document.getElementById('profileContent').innerHTML = `
+                        <div class="profile-card">
+                            <h2>👤 Мой профиль</h2>
+                            <div class="profile-item">
+                                <span class="label">Имя:</span>
+                                <span class="value">${p.name}</span>
+                            </div>
+                            <div class="profile-item">
+                                <span class="label">Возраст:</span>
+                                <span class="value">${p.age} лет</span>
+                            </div>
+                            <div class="profile-item">
+                                <span class="label">Статус:</span>
+                                <span class="value">${p.status === 'married' ? '💍 Замужем' : '✨ Свободна'}</span>
+                            </div>
+                            <div class="profile-item">
+                                <span class="label">Дети:</span>
+                                <span class="value">${p.children === 'yes' ? '👶 Да' : '❌ Нет'}</span>
+                            </div>
+                            <div class="profile-item">
+                                <span class="label">Интересует:</span>
+                                <span class="value">${p.topic || 'Не указано'}</span>
+                            </div>
+                            <div class="profile-item">
+                                <span class="label">Источник:</span>
+                                <span class="value">${p.source || 'Не указано'}</span>
+                            </div>
+                            <button class="btn-logout" onclick="logout()">🚪 Выход</button>
+                        </div>
                     `;
                 } else {
-                    document.getElementById('profileInfo').innerHTML = '<p>❌ Профиль не найден</p>';
+                    document.getElementById('profileContent').innerHTML = `
+                        <div class="no-profile">
+                            <p>📝 Профиль не заполнен</p>
+                            <a href="/survey" class="btn-submit">Заполнить анкету</a>
+                        </div>
+                    `;
                 }
             } catch (error) {
-                console.error('Ошибка:', error);
-                document.getElementById('profileInfo').innerHTML = '<p>❌ Ошибка загрузки</p>';
+                document.getElementById('profileContent').innerHTML = '<p>❌ Ошибка загрузки</p>';
             }
         }
 
         function logout() {
             if (confirm('Вы уверены?')) {
-                window.location.href = '/logout';
+                fetch('/logout').then(() => window.location.href = '/');
             }
         }
 
