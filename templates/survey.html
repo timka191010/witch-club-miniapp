@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анкета</title>
+    <title>Анкета - Клуб Ведьм</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="app-container">
         <header class="app-header">
-            <h1>🔮 Клуб Ведьм</h1>
-            <p class="subtitle">"По Мётлам"</p>
+            <h1>🌙 Вступление в Клуб</h1>
+            <p class="subtitle">Заполните анкету</p>
         </header>
 
         <nav class="app-nav">
-            <a href="/" class="nav-item">
-                <span class="nav-icon">👥</span>
-                <span class="nav-text">Участницы</span>
-            </a>
             <a href="/survey" class="nav-item active">
                 <span class="nav-icon">📝</span>
                 <span class="nav-text">Анкета</span>
+            </a>
+            <a href="/" class="nav-item">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">Участницы</span>
             </a>
             <a href="/profile" class="nav-item">
                 <span class="nav-icon">⚙️</span>
@@ -31,48 +31,55 @@
 
         <main class="app-main">
             <section class="form-section">
-                <h2>📝 Заполните анкету</h2>
+                <h2>🔮 Вступление в Клуб</h2>
                 <form id="surveyForm" class="survey-form">
                     
                     <div class="form-group">
-                        <label for="name">Имя:</label>
+                        <label for="name">Ваше имя</label>
                         <input type="text" id="name" name="name" required placeholder="Введите ваше имя">
                     </div>
 
                     <div class="form-group">
-                        <label for="age">Возраст:</label>
-                        <input type="number" id="age" name="age" required placeholder="Введите возраст">
+                        <label for="birthDate">Дата рождения (ДД.МММ.ГГГГ)</label>
+                        <input type="text" id="birthDate" name="birthDate" placeholder="01.01.1990">
                     </div>
 
                     <div class="form-group">
-                        <label>Замужем или свободна?</label>
-                        <div class="button-group">
-                            <button type="button" class="btn-toggle" data-value="married" onclick="toggleButton(this, 'status')">💍 Замужем</button>
-                            <button type="button" class="btn-toggle" data-value="single" onclick="toggleButton(this, 'status')">✨ Свободна</button>
-                        </div>
-                        <input type="hidden" id="status" name="status" required>
+                        <label for="status">Семейное положение</label>
+                        <select id="status" name="status" required>
+                            <option value="">Выберите статус</option>
+                            <option value="married">Замужем</option>
+                            <option value="single">Свободна</option>
+                            <option value="divorced">Разведена</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
-                        <label>Есть ли дети?</label>
-                        <div class="button-group">
-                            <button type="button" class="btn-toggle" data-value="yes" onclick="toggleButton(this, 'children')">👶 Да</button>
-                            <button type="button" class="btn-toggle" data-value="no" onclick="toggleButton(this, 'children')">❌ Нет</button>
-                        </div>
-                        <input type="hidden" id="children" name="children" required>
+                        <label for="children">Дети (возраст, пол)</label>
+                        <input type="text" id="children" name="children" placeholder="Например: сын 10л, дочь 7л">
                     </div>
 
                     <div class="form-group">
-                        <label for="topic">Интересная тема для мастер-классов:</label>
-                        <textarea id="topic" name="topic" rows="3" placeholder="О чём вы хотите узнать..."></textarea>
+                        <label for="interests">Увлечения и хоббі</label>
+                        <textarea id="interests" name="interests" rows="3" placeholder="Расскажите о ваших интересах..."></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="source">Откуда узнала про клуб?</label>
+                        <label for="topics">Интересные теми (МК, вызеды)</label>
+                        <textarea id="topics" name="topics" rows="3" placeholder="Какие темы вас интересуют..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="goal">Цель вступления в клуб</label>
+                        <textarea id="goal" name="goal" rows="3" placeholder="Чего вы хотите добиться..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="source">Откуда узнали о клубе?</label>
                         <input type="text" id="source" name="source" placeholder="От подруги, из соцсетей и т.д.">
                     </div>
 
-                    <button type="submit" class="btn-submit">📤 Отправить</button>
+                    <button type="submit" class="btn-submit">✨ Отправить анкету</button>
                 </form>
             </section>
         </main>
@@ -85,22 +92,17 @@
             tg.expand();
         }
 
-        function toggleButton(button, fieldId) {
-            const group = button.parentElement;
-            group.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
-            button.classList.add('active');
-            document.getElementById(fieldId).value = button.dataset.value;
-        }
-
         document.getElementById('surveyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const formData = {
                 name: document.getElementById('name').value,
-                age: document.getElementById('age').value,
+                birthDate: document.getElementById('birthDate').value,
                 status: document.getElementById('status').value,
                 children: document.getElementById('children').value,
-                topic: document.getElementById('topic').value,
+                interests: document.getElementById('interests').value,
+                topics: document.getElementById('topics').value,
+                goal: document.getElementById('goal').value,
                 source: document.getElementById('source').value
             };
 
@@ -112,11 +114,11 @@
                 });
 
                 if (response.ok) {
-                    alert('✨ Анкета отправлена!');
-                    window.location.href = '/';
+                    alert('✨ Анкета отправлена! Добро пожаловать в клуб!');
+                    setTimeout(() => window.location.href = '/', 1500);
                 }
             } catch (error) {
-                alert('❌ Ошибка');
+                alert('❌ Ошибка при отправке');
             }
         });
     </script>
