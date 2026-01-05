@@ -8,30 +8,43 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>🔮 Клуб Ведьм "По Мётлам"</h1>
-            <p class="subtitle">Закрытое женское сообщество</p>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>🔮 Клуб Ведьм</h1>
+            <p class="subtitle">"По Мётлам"</p>
         </header>
 
-        <nav class="navigation">
-            <a href="/survey" class="nav-btn">📝 Анкета</a>
-            <a href="/" class="nav-btn active">👥 Участницы</a>
-            <a href="/profile" class="nav-btn">⚙️ Профиль</a>
+        <nav class="app-nav">
+            <a href="/" class="nav-item active">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">Участницы</span>
+            </a>
+            <a href="/survey" class="nav-item">
+                <span class="nav-icon">📝</span>
+                <span class="nav-text">Анкета</span>
+            </a>
+            <a href="/profile" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Профиль</span>
+            </a>
         </nav>
 
-        <section class="members-section">
-            <h2>✨ Наши участницы</h2>
-            <div class="members-grid">
-                {% for member in members %}
-                <div class="member-card">
-                    <div class="member-emoji">{{ member.emoji }}</div>
-                    <div class="member-name">{{ member.name }}</div>
-                    <div class="member-title">{{ member.title }}</div>
+        <main class="app-main">
+            <section class="members-section">
+                <h2>✨ Наши участницы</h2>
+                <div class="members-grid">
+                    {% for member in members %}
+                    <div class="member-card">
+                        <div class="member-emoji">{{ member.emoji }}</div>
+                        <div class="member-info">
+                            <div class="member-name">{{ member.name }}</div>
+                            <div class="member-title">{{ member.title }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-        </section>
+            </section>
+        </main>
     </div>
 
     <script>
