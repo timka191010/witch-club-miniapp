@@ -95,25 +95,35 @@ async function loadProfile(tg) {
     const userId = tg?.initDataUnsafe?.user?.id || 0;
     const userName = tg?.initDataUnsafe?.user?.first_name || 'Пользователь';
 
+    console.log('Loading profile for:', { userId, userName });
+
+    // Проверяем, существуют ли элементы
+    const userNameEl = document.getElementById('userName');
+    const userIdEl = document.getElementById('userId');
+    const statusSpan = document.getElementById('statusText');
+
+    if (!userNameEl || !userIdEl || !statusSpan) {
+        console.error('Profile elements not found!');
+        return;
+    }
+
     // Мгновенно обновляем имя и ID
-    document.getElementById('userName').textContent = userName;
-    document.getElementById('userId').textContent = userId || '—';
+    userNameEl.textContent = userName;
+    userIdEl.textContent = userId || '—';
 
     // Если нет Telegram user_id — показываем сообщение
     if (!userId) {
-        const statusSpan = document.getElementById('statusText');
         statusSpan.textContent = '📱 Откройте в Telegram боте';
         statusSpan.className = 'status-pending';
         return;
     }
 
-    const statusSpan = document.getElementById('statusText');
     statusSpan.textContent = '🔄 Проверяем статус...';
     statusSpan.className = 'status-pending';
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 сек таймаут
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 сек таймаут
 
         const response = await fetch(`/api/user_status/${userId}`, {
             signal: controller.signal
@@ -122,6 +132,7 @@ async function loadProfile(tg) {
         clearTimeout(timeoutId);
 
         const json = await response.json();
+        console.log('User status response:', json);
 
         if (json.success) {
             if (json.application) {
@@ -156,7 +167,11 @@ async function loadProfile(tg) {
         }
     } catch (error) {
         console.error('Profile error:', error.name, error.message);
-        statusSpan.textContent = '⚠️ Ошибка загрузки';
+        if (error.name === 'AbortError') {
+            statusSpan.textContent = '⚠️ Превышено время ожидания';
+        } else {
+            statusSpan.textContent = '⚠️ Ошибка загрузки';
+        }
         statusSpan.className = 'status-pending';
     }
 }
