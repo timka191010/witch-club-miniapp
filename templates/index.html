@@ -3,132 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Клуб Ведьм По Мётлам</title>
+    <title>Клуб Ведьм</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <!-- ШАПКА -->
-        <header class="header">
-            <h1>🔮 Клуб Ведьм "По Мётлам"</h1>
-            <p class="subtitle">Закрытое женское сообщество для духовного роста</p>
-        </header>
-
-        <!-- ТАБЫ -->
-        <div class="tabs">
-            <button class="tab active" data-tab="participants">👥 Участницы</button>
-            <button class="tab" data-tab="survey">📝 Анкета</button>
+        <nav class="tabs">
+            <button class="tab active" data-tab="form">📝 Анкета</button>
+            <button class="tab" data-tab="members">👥 Участницы</button>
             <button class="tab" data-tab="profile">⚙️ Профиль</button>
+        </nav>
+
+        <div class="tab-content active" id="form">
+            <h1>🌙 Вступление в Клуб</h1>
+            <form id="applicationForm">
+                <input type="text" name="name" placeholder="Ваше имя" required>
+                <input type="text" name="age" placeholder="Дата рождения (ДД.ММ.ГГГГ)" required>
+                <select name="family_status" required>
+                    <option value="">Семейное положение</option>
+                    <option value="Замужем">Замужем</option>
+                    <option value="Свободна">Свободна</option>
+                </select>
+                <input type="text" name="children" placeholder="Дети (возраст, пол)" required>
+                <textarea name="hobbies" placeholder="Увлечения и хобби" required></textarea>
+                <textarea name="themes" placeholder="Интересные темы (МК, выезды)" required></textarea>
+                <textarea name="goal" placeholder="Цель вступления в клуб" required></textarea>
+                <input type="text" name="source" placeholder="Откуда узнали о клубе?" required>
+                <button type="submit" class="btn-submit" id="submitBtn">✨ Отправить анкету</button>
+            </form>
         </div>
 
-        <!-- ВКЛАДКА: УЧАСТНИЦЫ -->
-        <div id="participants" class="tab-content active">
-            <h2>✨ Наши участницы</h2>
+        <div class="tab-content" id="members">
+            <h1>🧙‍♀️ Ведьмы нашего круга</h1>
             <div class="members-grid">
                 {% for member in members %}
                 <div class="member-card">
                     <div class="member-emoji">{{ member.emoji }}</div>
-                    <div class="member-name">{{ member.name }}</div>
-                    <div class="member-title">{{ member.title }}</div>
+                    <div class="member-info">
+                        <h3>{{ member.name }}</h3>
+                        <p class="member-title">{{ member.title }}</p>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
 
-        <!-- ВКЛАДКА: АНКЕТА -->
-        <div id="survey" class="tab-content">
-            <h2>📝 Заполните анкету для вступления</h2>
-            <form id="applicationForm" class="application-form">
-                <div class="form-group">
-                    <label>Ваше имя:</label>
-                    <input type="text" name="name" required placeholder="Мария">
-                </div>
-
-                <div class="form-group">
-                    <label>Возраст:</label>
-                    <input type="number" name="age" required placeholder="30" min="18" max="100">
-                </div>
-
-                <div class="form-group">
-                    <label>Семейное положение:</label>
-                    <input type="text" name="family_status" required placeholder="Замужем / В отношениях / Не замужем">
-                </div>
-
-                <div class="form-group">
-                    <label>Есть ли дети? Сколько?</label>
-                    <input type="text" name="children" required placeholder="2 ребёнка / Нет детей">
-                </div>
-
-                <div class="form-group">
-                    <label>Ваши увлечения и хобби:</label>
-                    <textarea name="hobbies" required rows="3" placeholder="Йога, чтение, астрология..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Какие темы вам интересны?</label>
-                    <textarea name="themes" required rows="3" placeholder="Эзотерика, психология, саморазвитие..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Зачем вы хотите вступить в клуб?</label>
-                    <textarea name="goal" required rows="4" placeholder="Хочу найти единомышленниц, развиваться духовно..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Откуда вы узнали о клубе?</label>
-                    <input type="text" name="source" required placeholder="От подруги / Из соцсетей">
-                </div>
-
-                <button type="submit" class="submit-btn">✨ Отправить анкету</button>
-            </form>
-        </div>
-
-        <!-- ВКЛАДКА: ПРОФИЛЬ -->
-        <div id="profile" class="tab-content">
-            <h2>⚙️ Мой профиль</h2>
-            
-            <div class="profile-card">
-                <div class="profile-field">
-                    <div class="profile-label">Имя:</div>
-                    <div class="profile-value" id="userName">Загрузка...</div>
-                </div>
-
-                <div class="profile-field">
-                    <div class="profile-label">ID:</div>
-                    <div class="profile-value" id="userId">—</div>
-                </div>
-
-                <div class="profile-field">
-                    <div class="profile-label">Статус анкеты:</div>
-                    <div class="profile-status">
-                        <span id="statusText" class="status-pending">Загрузка...</span>
-                    </div>
-                </div>
-            </div>
-
+        <div class="tab-content" id="profile">
+            <h1>⚙️ Мой профиль</h1>
             <div class="profile-info">
-                <h3>ℹ️ Статусы анкеты:</h3>
-                <ul>
-                    <li>⏳ <strong>Ожидает проверки</strong> — анкета на рассмотрении</li>
-                    <li>✅ <strong>Одобрена</strong> — добро пожаловать в клуб!</li>
-                    <li>❌ <strong>Отклонена</strong> — к сожалению, не подходит</li>
-                </ul>
+                <p><strong>Имя:</strong> <span id="userName">Загрузка...</span></p>
+                <p><strong>ID:</strong> <span id="userId">—</span></p>
+                <p><strong>Статус анкеты:</strong> <span id="statusText" class="status-pending">Загрузка...</span></p>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.7);">
+                <p><strong>Статусы:</strong></p>
+                <p>⏳ <strong>Ожидает проверки</strong> — анкета на рассмотрении</p>
+                <p>✅ <strong>Одобрена</strong> — добро пожаловать в клуб!</p>
+                <p>❌ <strong>Отклонена</strong> — к сожалению, не подходит</p>
             </div>
         </div>
     </div>
-
-    <!-- ОТЛАДКА -->
-    <script>
-        window.addEventListener('load', () => {
-            console.log('Page loaded');
-            console.log('Telegram WebApp available:', typeof Telegram !== 'undefined');
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                console.log('WebApp user:', Telegram.WebApp.initDataUnsafe?.user);
-            }
-        });
-    </script>
-
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
