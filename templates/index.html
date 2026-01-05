@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анкета</title>
+    <title>Клуб Ведьм</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -15,100 +15,23 @@
         </header>
 
         <div class="navigation">
-            <a href="/" class="nav-btn">👥 Участницы</a>
-            <a href="/survey" class="nav-btn active">📝 Анкета</a>
+            <a href="/survey" class="nav-btn">📝 Анкета</a>
+            <a href="/" class="nav-btn active">👥 Участницы</a>
             <a href="/profile" class="nav-btn">⚙️ Профиль</a>
         </div>
 
-        <div class="form-section">
-            <h2>📝 Заполните анкету</h2>
-            <form id="applicationForm" class="application-form">
-                <div class="form-group">
-                    <label>Ваше имя:</label>
-                    <input type="text" name="name" required placeholder="Мария">
+        <div class="members-section">
+            <h2>✨ Наши участницы</h2>
+            <div class="members-grid">
+                {% for member in members %}
+                <div class="member-card">
+                    <div class="member-emoji">{{ member.emoji }}</div>
+                    <div class="member-name">{{ member.name }}</div>
+                    <div class="member-title">{{ member.title }}</div>
                 </div>
-
-                <div class="form-group">
-                    <label>Возраст:</label>
-                    <input type="number" name="age" required placeholder="30" min="18" max="100">
-                </div>
-
-                <div class="form-group">
-                    <label>Семейное положение:</label>
-                    <input type="text" name="family_status" required placeholder="Замужем / Не замужем">
-                </div>
-
-                <div class="form-group">
-                    <label>Есть ли дети? Сколько?</label>
-                    <input type="text" name="children" required placeholder="2 ребёнка / Нет">
-                </div>
-
-                <div class="form-group">
-                    <label>Увлечения и хобби:</label>
-                    <textarea name="hobbies" required rows="3" placeholder="Йога, чтение..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Интересные темы:</label>
-                    <textarea name="themes" required rows="3" placeholder="Эзотерика, психология..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Цель вступления:</label>
-                    <textarea name="goal" required rows="4" placeholder="Найти единомышленниц..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Откуда узнали о клубе?</label>
-                    <input type="text" name="source" required placeholder="От подруги / Соцсети">
-                </div>
-
-                <button type="submit" class="submit-btn">✨ Отправить анкету</button>
-            </form>
+                {% endfor %}
+            </div>
         </div>
     </div>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        document.getElementById('applicationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const fd = new FormData(e.target);
-            const user = tg.initDataUnsafe?.user;
-            
-            const data = {
-                user_id: user?.id || Math.floor(Math.random() * 1000000),
-                name: fd.get('name'),
-                age: fd.get('age'),
-                family_status: fd.get('family_status'),
-                children: fd.get('children'),
-                hobbies: fd.get('hobbies'),
-                themes: fd.get('themes'),
-                goal: fd.get('goal'),
-                source: fd.get('source')
-            };
-
-            try {
-                const res = await fetch('/submit', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-                const json = await res.json();
-                
-                if (json.success) {
-                    tg.showAlert('✅ Анкета отправлена!');
-                    setTimeout(() => window.location.href = '/profile', 1000);
-                } else {
-                    tg.showAlert(json.message);
-                }
-            } catch (err) {
-                tg.showAlert('❌ Ошибка отправки');
-            }
-        });
-    </script>
 </body>
 </html>
