@@ -3,43 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профиль</title>
+    <title>Профиль - Клуб Ведьм</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>⚙️ Мой профиль</h1>
+        <header class="header">
+            <h1>🔮 Клуб Ведьм "По Мётлам"</h1>
+            <p class="subtitle">Закрытое женское сообщество для духовного роста</p>
+        </header>
 
-        <div class="profile-card">
-            <div class="profile-field">
-                <div class="profile-label">Имя:</div>
-                <div class="profile-value" id="userName">Загрузка...</div>
-            </div>
-
-            <div class="profile-field">
-                <div class="profile-label">ID:</div>
-                <div class="profile-value" id="userId">—</div>
-            </div>
-
-            <div class="profile-field">
-                <div class="profile-label">Статус анкеты:</div>
-                <div class="profile-status">
-                    <span id="statusText" class="status-pending">Загрузка...</span>
-                </div>
-            </div>
+        <div class="navigation">
+            <a href="/" class="nav-btn">👥 Участницы</a>
+            <a href="/survey" class="nav-btn">📝 Анкета</a>
+            <a href="/profile" class="nav-btn active">⚙️ Профиль</a>
         </div>
 
-        <div class="profile-info">
-            <h3>ℹ️ Статусы анкеты:</h3>
-            <ul>
-                <li>⏳ <strong>Ожидает проверки</strong> — анкета на рассмотрении</li>
-                <li>✅ <strong>Одобрена</strong> — добро пожаловать в клуб!</li>
-                <li>❌ <strong>Отклонена</strong> — к сожалению, не подходит</li>
-            </ul>
+        <div class="profile-section">
+            <h2>⚙️ Мой профиль</h2>
+            
+            <div class="profile-card">
+                <div class="profile-field">
+                    <div class="profile-label">Имя:</div>
+                    <div class="profile-value" id="userName">—</div>
+                </div>
+
+                <div class="profile-field">
+                    <div class="profile-label">ID:</div>
+                    <div class="profile-value" id="userId">—</div>
+                </div>
+
+                <div class="profile-field">
+                    <div class="profile-label">Статус анкеты:</div>
+                    <div class="profile-status">
+                        <span id="statusText" class="status-pending">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-info">
+                <h3>ℹ️ Статусы анкеты:</h3>
+                <ul>
+                    <li>⏳ <strong>Ожидает проверки</strong> — анкета на рассмотрении</li>
+                    <li>✅ <strong>Одобрена</strong> — добро пожаловать в клуб!</li>
+                    <li>❌ <strong>Отклонена</strong> — к сожалению, не подходит</li>
+                </ul>
+            </div>
         </div>
     </div>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Получаем данные пользователя
+        const user = tg.initDataUnsafe?.user;
+        const userId = user?.id || 0;
+        const userName = user?.first_name || user?.username || '—';
+
+        console.log('Telegram user data:', user);
+        console.log('User ID:', userId);
+        console.log('User Name:', userName);
+
+        // Отображаем имя и ID
+        document.getElementById('userName').textContent = userName;
+        document.getElementById('userId').textContent = userId || '—';
+
+        // Проверяем статус анкеты
+        if (userId) {
+            fetch(`/api/user_status/${userId}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Status response:', data);
+                    
+                    const statusEl = document.getElementById('statusText');
+                    
+                    if (data.success && data.application) {
+                        const status = data.application.status;
+                        
+                        if (status === 'pending') {
+                            statusEl.textContent = '⏳ Ожидает проверки';
+                            statusEl.className = 'status-pending';
+                        } else if (status === 'approved') {
+                            statusEl.textContent = '✅ Одобрена';
+                            statusEl.className = 'status-approved';
+                        } else if (status === 'rejected') {
+                            statusEl.textContent = '❌ Отклонена';
+                            statusEl.className = 'status-rejected';
+                        }
+                    } else {
+                        statusEl.textContent = '📝 Анкета не подана';
+                        statusEl.className = 'status-pending';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading status:', err);
+                    document.getElementById('statusText').textContent = '⚠️ Ошибка загрузки';
+                });
+        } else {
+            document.getElementById('statusText').textContent = '📱 Откройте в Telegram боте';
+        }
+    </script>
 </body>
 </html>
