@@ -110,6 +110,14 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
+        .btn-edit-witch {
+            background: #ff9800;
+        }
+
+        .btn-remove-club {
+            background: #9e9e9e;
+        }
+
         .current-status {
             padding: 8px 16px;
             border-radius: 25px;
@@ -150,6 +158,76 @@
             text-align: center;
         }
 
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn-cancel {
+            background: #9e9e9e;
+            flex: 1;
+        }
+
+        .btn-save {
+            background: #4caf50;
+            flex: 1;
+        }
+
         @media (max-width: 600px) {
             .header, .actions {
                 flex-direction: column;
@@ -174,9 +252,37 @@
         </div>
     </div>
 
+    <!-- Модальное окно редактирования -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">✏️ Редактировать имя ведьмы</div>
+            
+            <div class="form-group">
+                <label class="form-label">Имя ведьмы</label>
+                <input type="text" id="editWitchName" class="form-input" placeholder="Тёмная Мария">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Титул</label>
+                <input type="text" id="editWitchTitle" class="form-input" placeholder="Ведьма Лунного Света">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Эмодзи</label>
+                <input type="text" id="editWitchEmoji" class="form-input" placeholder="🔮" maxlength="4">
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeEditModal()">Отмена</button>
+                <button class="btn btn-save" onclick="saveWitchEdit()">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const appId = {{ app_id | int }};
         document.getElementById('appId').textContent = appId;
+        let currentEditUserId = null;
 
         async function loadApplication() {
             try {
@@ -257,6 +363,8 @@
                         <button class="btn btn-pending" onclick="updateStatus('pending')">⏳ В ожидание</button>
                         <button class="btn btn-reject" onclick="updateStatus('rejected')">❌ Отклонить</button>
                         <button class="btn btn-add-club" onclick="addToClub()">✨ Добавить в клуб</button>
+                        <button class="btn btn-edit-witch" onclick="editWitchName(${app.user_id})">✏️ Редактировать ведьму</button>
+                        <button class="btn btn-remove-club" onclick="removeFromClub()">🗑️ Удалить из клуба</button>
                     </div>
                 </div>
             `;
@@ -310,6 +418,104 @@
             } catch (error) {
                 console.error('Add to club error:', error);
                 alert('❌ Ошибка подключения');
+            }
+        }
+
+        async function removeFromClub() {
+            if (!confirm('Удалить эту участницу из клуба?\n\nОна исчезнет с главной страницы!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/admin/application/${appId}/remove_from_club`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('🗑️ Удалено из клуба!');
+                    loadApplication();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                console.error('Remove from club error:', error);
+                alert('❌ Ошибка подключения');
+            }
+        }
+
+        async function editWitchName(userId) {
+            currentEditUserId = userId;
+            
+            try {
+                const response = await fetch(`/admin/club_member/${userId}/data`);
+                const data = await response.json();
+                
+                if (data.success && data.member) {
+                    document.getElementById('editWitchName').value = data.member.witch_name;
+                    document.getElementById('editWitchTitle').value = data.member.witch_title;
+                    document.getElementById('editWitchEmoji').value = data.member.emoji;
+                    document.getElementById('editModal').style.display = 'block';
+                } else {
+                    alert('❌ Участница не найдена в клубе!\n\nСначала добавьте её через кнопку "Добавить в клуб"');
+                }
+            } catch (error) {
+                console.error('Load member error:', error);
+                alert('❌ Ошибка загрузки данных');
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditUserId = null;
+        }
+
+        async function saveWitchEdit() {
+            const witchName = document.getElementById('editWitchName').value.trim();
+            const witchTitle = document.getElementById('editWitchTitle').value.trim();
+            const emoji = document.getElementById('editWitchEmoji').value.trim();
+            
+            if (!witchName || !witchTitle || !emoji) {
+                alert('❌ Заполните все поля!');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/admin/club_member/${currentEditUserId}/edit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        witch_name: witchName,
+                        witch_title: witchTitle,
+                        emoji: emoji
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Имя ведьмы обновлено!');
+                    closeEditModal();
+                    loadApplication();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                console.error('Save edit error:', error);
+                alert('❌ Ошибка сохранения');
+            }
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target == modal) {
+                closeEditModal();
             }
         }
 
