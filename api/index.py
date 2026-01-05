@@ -13,6 +13,7 @@ app = Flask(
     static_folder=os.path.join(BASE_DIR, 'static')
 )
 app.secret_key = os.getenv('SECRET_KEY', 'witch_club_secret_key_2026')
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 def get_db_connection():
     DATABASE_URL = os.getenv('POSTGRES_URL')
@@ -132,8 +133,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ==================== ПОЛЬЗОВАТЕЛЬСКИЕ СТРАНИЦЫ ====================
-
 @app.route('/', methods=['GET'])
 def index():
     try:
@@ -150,7 +149,6 @@ def index():
             'emoji': m['emoji']
         } for m in members]
         
-        # ПЕРВЫЕ 8 УЧАСТНИЦ (ПОСТОЯННЫЕ)
         default_members = [
             {'name': 'Мария Зуева', 'title': 'Верховная Ведьма', 'emoji': '🔮'},
             {'name': 'Юлия Пиндюрина', 'title': 'Ведьма Звёздного Пути', 'emoji': '✨'},
@@ -162,22 +160,17 @@ def index():
             {'name': 'Анна Моисеева', 'title': 'Ведьма Таинственных Снов', 'emoji': '🌌'}
         ]
         
-        # СОРТИРУЕМ: СНАЧАЛА 8 ОСНОВНЫХ, ПОТОМ НОВЫЕ
         final_members = []
         
-        # Добавляем 8 основных участниц
         for default in default_members:
-            # Ищем в БД по фамилии, может быть отредактирована
             found = next((m for m in members_list if default['name'].split()[-1] in m['name']), None)
             if found:
                 final_members.append(found)
             else:
                 final_members.append(default)
         
-        # ДОБАВЛЯЕМ НОВЫХ УЧАСТНИЦ ИЗ БД (которых нет в первых 8)
         default_last_names = [d['name'].split()[-1] for d in default_members]
         for m in members_list:
-            # Проверяем, есть ли фамилия из дефолтных в имени участницы
             is_default = any(last_name in m['name'] for last_name in default_last_names)
             if not is_default:
                 final_members.append(m)
@@ -185,7 +178,6 @@ def index():
         return render_template('index.html', members=final_members)
     except Exception as e:
         print(f"Index error: {e}")
-        # Fallback на дефолтных участниц
         members = [
             {'name': 'Мария Зуева', 'title': 'Верховная Ведьма', 'emoji': '🔮'},
             {'name': 'Юлия Пиндюрина', 'title': 'Ведьма Звёздного Пути', 'emoji': '✨'},
@@ -255,8 +247,6 @@ def user_status(user_id):
             'success': False,
             'message': 'Ошибка проверки статуса'
         }), 500
-
-# ==================== АДМИНКА ====================
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_login():
