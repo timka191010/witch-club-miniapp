@@ -14,86 +14,60 @@
             <p class="subtitle">Закрытое женское сообщество</p>
         </header>
 
-        <div class="navigation">
-            <a href="/" class="nav-btn">👥 Участницы</a>
+        <nav class="navigation">
             <a href="/survey" class="nav-btn">📝 Анкета</a>
+            <a href="/" class="nav-btn">👥 Участницы</a>
             <a href="/profile" class="nav-btn active">⚙️ Профиль</a>
-        </div>
+        </nav>
 
-        <div class="profile-section">
+        <section class="profile-section">
             <h2>⚙️ Мой профиль</h2>
-            
             <div class="profile-card">
-                <div class="profile-field">
-                    <div class="profile-label">Имя:</div>
-                    <div class="profile-value" id="userName">—</div>
+                <div class="profile-info" id="profileInfo">
+                    <p>Загрузка профиля...</p>
                 </div>
-
-                <div class="profile-field">
-                    <div class="profile-label">ID:</div>
-                    <div class="profile-value" id="userId">—</div>
-                </div>
-
-                <div class="profile-field">
-                    <div class="profile-label">Статус анкеты:</div>
-                    <div class="profile-status">
-                        <span id="statusText" class="status-pending">—</span>
-                    </div>
-                </div>
+                <button class="btn-logout" onclick="logout()">🚪 Выход</button>
             </div>
-
-            <div class="profile-info">
-                <h3>ℹ️ Статусы:</h3>
-                <ul>
-                    <li>⏳ <strong>Ожидает</strong> — на проверке</li>
-                    <li>✅ <strong>Одобрена</strong> — добро пожаловать!</li>
-                    <li>❌ <strong>Отклонена</strong> — не подходит</li>
-                </ul>
-            </div>
-        </div>
+        </section>
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        const user = tg.initDataUnsafe?.user;
-        const userId = user?.id || 0;
-        const userName = user?.first_name || user?.username || '—';
-
-        document.getElementById('userName').textContent = userName;
-        document.getElementById('userId').textContent = userId || '—';
-
-        if (userId) {
-            fetch(`/api/user_status/${userId}`)
-                .then(r => r.json())
-                .then(data => {
-                    const el = document.getElementById('statusText');
-                    
-                    if (data.success && data.application) {
-                        const s = data.application.status;
-                        
-                        if (s === 'pending') {
-                            el.textContent = '⏳ Ожидает проверки';
-                            el.className = 'status-pending';
-                        } else if (s === 'approved') {
-                            el.textContent = '✅ Одобрена';
-                            el.className = 'status-approved';
-                        } else if (s === 'rejected') {
-                            el.textContent = '❌ Отклонена';
-                            el.className = 'status-rejected';
-                        }
-                    } else {
-                        el.textContent = '📝 Анкета не подана';
-                    }
-                })
-                .catch(() => {
-                    document.getElementById('statusText').textContent = '⚠️ Ошибка';
-                });
-        } else {
-            document.getElementById('statusText').textContent = '📱 Откройте в боте';
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
         }
+
+        async function loadProfile() {
+            try {
+                const response = await fetch('/get_profile');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const profile = data.profile;
+                    document.getElementById('profileInfo').innerHTML = `
+                        <p><strong>Имя:</strong> ${profile.name}</p>
+                        <p><strong>Возраст:</strong> ${profile.age}</p>
+                        <p><strong>Опыт:</strong> ${profile.experience} лет</p>
+                        <p><strong>Специализация:</strong> ${profile.specialty}</p>
+                        <p><strong>О себе:</strong> ${profile.about}</p>
+                    `;
+                } else {
+                    document.getElementById('profileInfo').innerHTML = '<p>❌ Профиль не найден</p>';
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                document.getElementById('profileInfo').innerHTML = '<p>❌ Ошибка загрузки</p>';
+            }
+        }
+
+        function logout() {
+            if (confirm('Вы уверены?')) {
+                window.location.href = '/logout';
+            }
+        }
+
+        loadProfile();
     </script>
 </body>
 </html>
