@@ -6,9 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
         tg.expand();
     }
 
-    console.log('Page loaded, Telegram WebApp:', tg);
-
-    // ==================== ФОРМА АНКЕТЫ ====================
     const form = document.getElementById('applicationForm');
     if (form) {
         form.addEventListener('submit', async (e) => {
@@ -30,10 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 source: fd.get('source').trim()
             };
 
-            // Проверка пустых полей
             for (const key in data) {
                 if (key !== 'user_id' && (!data[key] || data[key] === '')) {
-                    showAlert(tg, '❌ Заполните все поля анкеты');
+                    showAlert(tg, '❌ Заполните все поля');
                     return;
                 }
             }
@@ -47,18 +43,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const json = await res.json();
 
                 if (json.success) {
-                    showAlert(tg, '✅ Анкета отправлена! Проверьте статус в разделе Профиль.');
+                    showAlert(tg, '✅ Анкета отправлена!');
                     form.reset();
-                    // Редирект на профиль
                     setTimeout(() => {
                         window.location.href = '/profile';
                     }, 1500);
                 } else {
-                    showAlert(tg, json.message || '❌ Ошибка отправки анкеты');
+                    showAlert(tg, json.message || '❌ Ошибка');
                 }
             } catch (err) {
                 console.error('Submit error:', err);
-                showAlert(tg, '❌ Ошибка подключения к серверу');
+                showAlert(tg, '❌ Ошибка подключения');
             }
         });
     }
