@@ -91,6 +91,7 @@
             margin-top: 30px;
             padding-top: 20px;
             border-top: 2px solid #eee;
+            flex-wrap: wrap;
         }
 
         .btn-approve {
@@ -103,6 +104,10 @@
 
         .btn-pending {
             background: #ffa500;
+        }
+
+        .btn-add-club {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .current-status {
@@ -170,7 +175,6 @@
     </div>
 
     <script>
-        // Безопасная вставка app_id из Jinja
         const appId = {{ app_id | int }};
         document.getElementById('appId').textContent = appId;
 
@@ -252,6 +256,7 @@
                         <button class="btn btn-approve" onclick="updateStatus('approved')">✅ Одобрить</button>
                         <button class="btn btn-pending" onclick="updateStatus('pending')">⏳ В ожидание</button>
                         <button class="btn btn-reject" onclick="updateStatus('rejected')">❌ Отклонить</button>
+                        <button class="btn btn-add-club" onclick="addToClub()">✨ Добавить в клуб</button>
                     </div>
                 </div>
             `;
@@ -271,12 +276,39 @@
 
                 if (data.success) {
                     alert('✅ Статус обновлён!');
-                    loadApplication(); // Перезагрузить данные
+                    loadApplication();
                 } else {
                     alert('❌ Ошибка при обновлении статуса');
                 }
             } catch (error) {
                 console.error('Status update error:', error);
+                alert('❌ Ошибка подключения');
+            }
+        }
+
+        async function addToClub() {
+            if (!confirm('Добавить эту участницу в клуб?\n\nБудет сгенерировано ведьмовское имя!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/admin/application/${appId}/add_to_club`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`✨ Добавлено в клуб!\n\nИмя ведьмы: ${data.witch_data.witch_name}\nТитул: ${data.witch_data.title}\nЭмодзи: ${data.witch_data.emoji}`);
+                    loadApplication();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                console.error('Add to club error:', error);
                 alert('❌ Ошибка подключения');
             }
         }
@@ -316,7 +348,6 @@
             }
         }
 
-        // Загрузить данные при открытии страницы
         loadApplication();
     </script>
 </body>
