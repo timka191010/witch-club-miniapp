@@ -1,126 +1,566 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анкета - Клуб Ведьм</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="app-container">
-        <header class="app-header">
-            <h1>🌙 Вступление в Клуб</h1>
-            <p class="subtitle">Заполните анкету</p>
-        </header>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        <nav class="app-nav">
-            <a href="/survey" class="nav-item active">
-                <span class="nav-icon">📝</span>
-                <span class="nav-text">Анкета</span>
-            </a>
-            <a href="/" class="nav-item">
-                <span class="nav-icon">👥</span>
-                <span class="nav-text">Участницы</span>
-            </a>
-            <a href="/profile" class="nav-item">
-                <span class="nav-icon">⚙️</span>
-                <span class="nav-text">Профиль</span>
-            </a>
-        </nav>
+:root {
+    --bg-primary: #0f0f1f;
+    --bg-secondary: #1a1a2e;
+    --bg-tertiary: #16213e;
+    --accent-purple: #8b5cf6;
+    --accent-purple-light: #a78bfa;
+    --accent-purple-dark: #6d28d9;
+    --text-primary: #e0e0e0;
+    --text-secondary: #999;
+    --border-color: #333;
+    --input-bg: #2a2a3e;
+}
 
-        <main class="app-main">
-            <section class="form-section">
-                <h2>🔮 Вступление в Клуб</h2>
-                <form id="surveyForm" class="survey-form">
-                    
-                    <div class="form-group">
-                        <label for="name">Ваше имя</label>
-                        <input type="text" id="name" name="name" required placeholder="Введите ваше имя">
-                    </div>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+}
 
-                    <div class="form-group">
-                        <label for="birthDate">Дата рождения (ДД.МММ.ГГГГ)</label>
-                        <input type="text" id="birthDate" name="birthDate" placeholder="01.01.1990">
-                    </div>
+/* CONTAINER */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--bg-primary);
+}
 
-                    <div class="form-group">
-                        <label for="status">Семейное положение</label>
-                        <select id="status" name="status" required>
-                            <option value="">Выберите статус</option>
-                            <option value="married">Замужем</option>
-                            <option value="single">Свободна</option>
-                            <option value="divorced">Разведена</option>
-                        </select>
-                    </div>
+/* HEADER */
+.app-header {
+    background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-purple-dark) 100%);
+    color: white;
+    padding: 24px 20px;
+    text-align: center;
+    border-bottom: 2px solid var(--accent-purple-light);
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+    animation: slideDown 0.6s ease-out;
+}
 
-                    <div class="form-group">
-                        <label for="children">Дети (возраст, пол)</label>
-                        <input type="text" id="children" name="children" placeholder="Например: сын 10л, дочь 7л">
-                    </div>
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
-                    <div class="form-group">
-                        <label for="interests">Увлечения и хоббі</label>
-                        <textarea id="interests" name="interests" rows="3" placeholder="Расскажите о ваших интересах..."></textarea>
-                    </div>
+.app-header h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
 
-                    <div class="form-group">
-                        <label for="topics">Интересные теми (МК, вызеды)</label>
-                        <textarea id="topics" name="topics" rows="3" placeholder="Какие темы вас интересуют..."></textarea>
-                    </div>
+.app-header .subtitle {
+    font-size: 14px;
+    opacity: 0.9;
+    letter-spacing: 0.5px;
+}
 
-                    <div class="form-group">
-                        <label for="goal">Цель вступления в клуб</label>
-                        <textarea id="goal" name="goal" rows="3" placeholder="Чего вы хотите добиться..."></textarea>
-                    </div>
+/* NAV */
+.app-nav {
+    display: flex;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
 
-                    <div class="form-group">
-                        <label for="source">Откуда узнали о клубе?</label>
-                        <input type="text" id="source" name="source" placeholder="От подруги, из соцсетей и т.д.">
-                    </div>
+.nav-item {
+    flex: 1;
+    padding: 14px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    cursor: pointer;
+}
 
-                    <button type="submit" class="btn-submit">✨ Отправить анкету</button>
-                </form>
-            </section>
-        </main>
-    </div>
+.nav-item:hover {
+    color: var(--accent-purple-light);
+    background: rgba(139, 92, 246, 0.1);
+}
 
-    <script>
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-        }
+.nav-item.active {
+    color: var(--accent-purple-light);
+    border-bottom-color: var(--accent-purple);
+    background: rgba(139, 92, 246, 0.15);
+    box-shadow: inset 0 -3px 0 var(--accent-purple);
+}
 
-        document.getElementById('surveyForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = {
-                name: document.getElementById('name').value,
-                birthDate: document.getElementById('birthDate').value,
-                status: document.getElementById('status').value,
-                children: document.getElementById('children').value,
-                interests: document.getElementById('interests').value,
-                topics: document.getElementById('topics').value,
-                goal: document.getElementById('goal').value,
-                source: document.getElementById('source').value
-            };
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-purple), transparent);
+    animation: glow 1.5s ease-in-out infinite;
+}
 
-            try {
-                const response = await fetch('/submit_survey', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
+@keyframes glow {
+    0%, 100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+}
 
-                if (response.ok) {
-                    alert('✨ Анкета отправлена! Добро пожаловать в клуб!');
-                    setTimeout(() => window.location.href = '/', 1500);
-                }
-            } catch (error) {
-                alert('❌ Ошибка при отправке');
-            }
-        });
-    </script>
-</body>
-</html>
+.nav-icon {
+    font-size: 22px;
+    display: block;
+}
+
+.nav-text {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* MAIN */
+.app-main {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* SECTIONS */
+.members-section h2,
+.form-section h2,
+.profile-section h2 {
+    margin-bottom: 20px;
+    font-size: 20px;
+    color: var(--accent-purple-light);
+    animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* MEMBERS GRID */
+.members-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    animation: scaleIn 0.5s ease-out 0.1s both;
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.member-card {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.member-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.member-card:hover {
+    border-color: var(--accent-purple);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2), inset 0 1px 0 rgba(139, 92, 246, 0.1);
+    transform: translateY(-4px);
+    background: var(--bg-tertiary);
+}
+
+.member-card:hover::before {
+    opacity: 1;
+}
+
+.member-emoji {
+    font-size: 40px;
+    margin-bottom: 8px;
+    display: block;
+    transition: transform 0.3s ease;
+    animation: bounce 0.6s ease-out;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.member-card:hover .member-emoji {
+    transform: scale(1.2) rotate(5deg);
+    animation: none;
+}
+
+.member-name {
+    font-weight: 600;
+    color: var(--accent-purple-light);
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.member-title {
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+}
+
+.member-card:hover .member-title {
+    color: var(--accent-purple);
+}
+
+/* FORM */
+.survey-form {
+    background: var(--bg-secondary);
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-group {
+    margin-bottom: 18px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--accent-purple-light);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder,
+.form-group select {
+    color: var(--text-secondary);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    background: var(--bg-tertiary);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.3), inset 0 0 8px rgba(139, 92, 246, 0.1);
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-toggle {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-secondary);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-toggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-toggle:hover {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple-light);
+    background: rgba(139, 92, 246, 0.1);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.2);
+}
+
+.btn-toggle:hover::before {
+    left: 100%;
+}
+
+.btn-toggle.active {
+    background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-purple-dark) 100%);
+    border-color: var(--accent-purple-light);
+    color: white;
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: scale(1.02);
+}
+
+/* BUTTONS */
+.btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-purple-dark) 100%);
+    color: white;
+    border: 2px solid var(--accent-purple-light);
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+    animation: slideInDown 0.6s ease-out 0.3s both;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-submit::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.6s ease;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(139, 92, 246, 0.4);
+}
+
+.btn-submit:hover::before {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.btn-submit:active {
+    transform: translateY(0);
+}
+
+/* PROFILE */
+.profile-card {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    animation: slideUp 0.5s ease-out;
+}
+
+.profile-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-color);
+    animation: fadeIn 0.5s ease-out;
+    transition: all 0.3s ease;
+}
+
+.profile-item:last-child {
+    border-bottom: none;
+}
+
+.profile-item:hover {
+    background: rgba(139, 92, 246, 0.05);
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.profile-item .label {
+    font-weight: 600;
+    color: var(--accent-purple-light);
+}
+
+.profile-item .value {
+    color: var(--text-secondary);
+    text-align: right;
+    max-width: 200px;
+}
+
+.btn-logout {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+    color: white;
+    border: 2px solid #f44336;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-logout:hover {
+    box-shadow: 0 8px 24px rgba(211, 47, 47, 0.4);
+    transform: translateY(-2px);
+}
+
+.no-profile {
+    text-align: center;
+    padding: 40px 20px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.no-profile p {
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+.no-profile .btn-submit {
+    display: inline-block;
+    width: auto;
+    padding: 12px 32px;
+}
+
+/* SCROLL */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-purple);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-purple-light);
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+    .app-header h1 {
+        font-size: 24px;
+    }
+
+    .members-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .app-main {
+        padding: 16px;
+    }
+}
