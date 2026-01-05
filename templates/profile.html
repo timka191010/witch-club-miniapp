@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профиль - Клуб Ведьм</title>
+    <title>Профиль</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -11,7 +11,7 @@
     <div class="container">
         <header class="header">
             <h1>🔮 Клуб Ведьм "По Мётлам"</h1>
-            <p class="subtitle">Закрытое женское сообщество для духовного роста</p>
+            <p class="subtitle">Закрытое женское сообщество</p>
         </header>
 
         <div class="navigation">
@@ -43,11 +43,11 @@
             </div>
 
             <div class="profile-info">
-                <h3>ℹ️ Статусы анкеты:</h3>
+                <h3>ℹ️ Статусы:</h3>
                 <ul>
-                    <li>⏳ <strong>Ожидает проверки</strong> — анкета на рассмотрении</li>
-                    <li>✅ <strong>Одобрена</strong> — добро пожаловать в клуб!</li>
-                    <li>❌ <strong>Отклонена</strong> — к сожалению, не подходит</li>
+                    <li>⏳ <strong>Ожидает</strong> — на проверке</li>
+                    <li>✅ <strong>Одобрена</strong> — добро пожаловать!</li>
+                    <li>❌ <strong>Отклонена</strong> — не подходит</li>
                 </ul>
             </div>
         </div>
@@ -58,52 +58,41 @@
         tg.ready();
         tg.expand();
 
-        // Получаем данные пользователя
         const user = tg.initDataUnsafe?.user;
         const userId = user?.id || 0;
         const userName = user?.first_name || user?.username || '—';
 
-        console.log('Telegram user data:', user);
-        console.log('User ID:', userId);
-        console.log('User Name:', userName);
-
-        // Отображаем имя и ID
         document.getElementById('userName').textContent = userName;
         document.getElementById('userId').textContent = userId || '—';
 
-        // Проверяем статус анкеты
         if (userId) {
             fetch(`/api/user_status/${userId}`)
-                .then(res => res.json())
+                .then(r => r.json())
                 .then(data => {
-                    console.log('Status response:', data);
-                    
-                    const statusEl = document.getElementById('statusText');
+                    const el = document.getElementById('statusText');
                     
                     if (data.success && data.application) {
-                        const status = data.application.status;
+                        const s = data.application.status;
                         
-                        if (status === 'pending') {
-                            statusEl.textContent = '⏳ Ожидает проверки';
-                            statusEl.className = 'status-pending';
-                        } else if (status === 'approved') {
-                            statusEl.textContent = '✅ Одобрена';
-                            statusEl.className = 'status-approved';
-                        } else if (status === 'rejected') {
-                            statusEl.textContent = '❌ Отклонена';
-                            statusEl.className = 'status-rejected';
+                        if (s === 'pending') {
+                            el.textContent = '⏳ Ожидает проверки';
+                            el.className = 'status-pending';
+                        } else if (s === 'approved') {
+                            el.textContent = '✅ Одобрена';
+                            el.className = 'status-approved';
+                        } else if (s === 'rejected') {
+                            el.textContent = '❌ Отклонена';
+                            el.className = 'status-rejected';
                         }
                     } else {
-                        statusEl.textContent = '📝 Анкета не подана';
-                        statusEl.className = 'status-pending';
+                        el.textContent = '📝 Анкета не подана';
                     }
                 })
-                .catch(err => {
-                    console.error('Error loading status:', err);
-                    document.getElementById('statusText').textContent = '⚠️ Ошибка загрузки';
+                .catch(() => {
+                    document.getElementById('statusText').textContent = '⚠️ Ошибка';
                 });
         } else {
-            document.getElementById('statusText').textContent = '📱 Откройте в Telegram боте';
+            document.getElementById('statusText').textContent = '📱 Откройте в боте';
         }
     </script>
 </body>
