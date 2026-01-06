@@ -79,11 +79,11 @@ TITLES = [
 
 def random_title():
     """Генерировать случайный титул"""
-    return TITLES[random.randint(0, len(TITLES)-1)]
+    return random.choice(TITLES)
 
 def random_emoji():
     """Генерировать случайный эмодзи"""
-    return EMOJIS[random.randint(0, len(EMOJIS)-1)]
+    return random.choice(EMOJIS)
 
 def init_members():
     """Инициализировать список участниц"""
@@ -468,4 +468,3 @@ def server_error(e):
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
-    
