@@ -121,6 +121,34 @@
             font-size: 0.9rem;
         }
 
+        .random-gen {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .random-gen input {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 7px;
+            border: 1px solid rgba(168,237,234,0.5);
+            background: rgba(0,0,0,0.3);
+            color: #a8edea;
+            font-size: 0.9rem;
+        }
+        .random-gen button {
+            padding: 8px 12px;
+            border-radius: 7px;
+            border: 1px solid rgba(168,237,234,0.85);
+            background: rgba(168,237,234,0.2);
+            color: #a8edea;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .random-gen button:hover {
+            background: rgba(168,237,234,0.3);
+        }
+
         @media (max-width: 720px) {
             header { flex-direction: column; align-items: flex-start; gap: 8px; }
             table { font-size: 0.8rem; }
@@ -159,6 +187,10 @@
 
     <!-- Участницы -->
     <section id="tab-members" class="tab">
+        <div class="random-gen">
+            <input type="text" id="newMemberName" placeholder="Введи имя новой участницы...">
+            <button onclick="generateAndAdd()">✨ Добавить случайно</button>
+        </div>
         <div id="membersGrid" class="members-grid"></div>
         <div id="membersEmpty" class="empty" style="display:none;">Пока нет участниц</div>
     </section>
@@ -167,6 +199,44 @@
 <script>
     const API_URL = '/api';
 
+    // ===== ГЕНЕРАТОРЫ =====
+    const TITLES = [
+        '👑 Верховная Ведьма',
+        '⭐ Ведьма Звёздного Пути',
+        '🌿 Ведьма Трав и Эликсиров',
+        '🔥 Ведьма Огненного Круга',
+        '🌙 Ведьма Лунного Света',
+        '💎 Ведьма Кристаллов',
+        '⚡ Ведьма Грозовых Ветров',
+        '🦋 Ведьма Превращений',
+        '🔮 Чародейка Утренних Туманов',
+        '✨ Ведающая Путями Судьбы',
+        '🌸 Магиня Звёздного Ветра',
+        '🕊️ Берегиня Тишины',
+        '🌑 Чтица Линий Времени',
+        '🧿 Повелительница Чая и Таро',
+        '🕯️ Хранительница Теней',
+        '🌊 Ведьма Морских Глубин',
+        '🍂 Ведьма Осенних Листьев',
+        '❄️ Ведьма Ледяных Чар',
+        '🌻 Ведьма Золотых Нитей',
+        '🦉 Ведьма Ночной Мудрости',
+        '🧙‍♀️ Волшебница Забытых Слов',
+        '🌙 Королева Ночного Неба',
+        '💫 Сотворительница Звёзд',
+        '🪙 Хранительница Древних Тайн'
+    ];
+
+    const EMOJIS = ['🔮','🌙','🧿','✨','🕯️','🌑','🧙‍♀️','🌸','🕊️','🌊','🍂','❄️','🌻','🦉','🪙','💫','⭐','🔥','🌿','💎','⚡','🦋'];
+
+    function randomTitle() {
+        return TITLES[Math.floor(Math.random() * TITLES.length)];
+    }
+
+    function randomEmoji() {
+        return EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    }
+
     // переключение табов
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -174,27 +244,11 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
             document.getElementById(btn.dataset.tab).classList.add('active');
+            if (btn.dataset.tab === 'tab-members') {
+                loadMembers();
+            }
         });
     });
-
-    function randomTitle() {
-        const titles = [
-            'Ведьма Лунного Света',
-            'Хранительница Теней',
-            'Чародейка Утренних Туманов',
-            'Ведающая Путями Судьбы',
-            'Магиня Звёздного Ветра',
-            'Берегиня Тишины',
-            'Чтица Линий Времени',
-            'Повелительница Чая и Таро'
-        ];
-        return titles[Math.floor(Math.random() * titles.length)];
-    }
-
-    function randomEmoji() {
-        const list = ['🔮','🌙','🧿','✨','🕯️','🌑','🧙‍♀️','🌸','🕊️'];
-        return list[Math.floor(Math.random() * list.length)];
-    }
 
     async function fetchJSON(url, options) {
         const res = await fetch(url, options);
@@ -214,12 +268,12 @@
             }
             body.innerHTML = apps.map(app => {
                 const statusClass =
-                    app.status === 'approved' ? 'status-approved' :
-                    app.status === 'rejected' ? 'status-rejected' :
+                    app.applicationStatus === 'approved' ? 'status-approved' :
+                    app.applicationStatus === 'rejected' ? 'status-rejected' :
                     'status-pending';
                 const statusText =
-                    app.status === 'approved' ? 'Одобрена' :
-                    app.status === 'rejected' ? 'Отклонена' :
+                    app.applicationStatus === 'approved' ? 'Одобрена' :
+                    app.applicationStatus === 'rejected' ? 'Отклонена' :
                     'На проверке';
                 const date = app.createdAt
                     ? new Date(app.createdAt).toLocaleDateString('ru-RU')
@@ -232,12 +286,12 @@
                         <td>${date}</td>
                         <td>
                             <div class="actions">
-                                ${app.status === 'pending' ? `
-                                  <button class="btn-xs btn-approve" onclick="approveApp('${app.id}')">✓ Одобрить</button>
-                                  <button class="btn-xs btn-reject" onclick="rejectApp('${app.id}')">✗ Отклонить</button>
+                                ${app.applicationStatus === 'pending' ? `
+                                  <button class="btn-xs btn-approve" onclick="approveApp(${app.id})">✓ Одобрить</button>
+                                  <button class="btn-xs btn-reject" onclick="rejectApp(${app.id})">✗ Отклонить</button>
                                 ` : ''}
-                                <button class="btn-xs btn-add-member" onclick="addFromApp('${app.id}')">➕ В участницы</button>
-                                <button class="btn-xs btn-delete" onclick="deleteApp('${app.id}')">🗑 Удалить</button>
+                                <button class="btn-xs btn-add-member" onclick="addFromApp(${app.id})">➕ В участницы</button>
+                                <button class="btn-xs btn-delete" onclick="deleteApp(${app.id})">🗑 Удалить</button>
                             </div>
                         </td>
                     </tr>
@@ -266,7 +320,7 @@
                     <div class="member-emoji">${m.emoji || '🔮'}</div>
                     <div class="member-name">${m.name}</div>
                     <div class="member-title">${m.title || ''}</div>
-                    <button class="btn-xs btn-delete" style="margin-top:8px;width:100%;" onclick="deleteMember('${m.id}')">Удалить</button>
+                    <button class="btn-xs btn-delete" style="margin-top:8px;width:100%;" onclick="deleteMember(${m.id})">Удалить</button>
                 </div>
             `).join('');
         } catch (e) {
@@ -317,7 +371,7 @@
     async function addFromApp(id) {
         try {
             const data = await fetchJSON(API_URL + '/applications');
-            const app = (data.applications || []).find(a => String(a.id) === String(id));
+            const app = (data.applications || []).find(a => a.id === id);
             if (!app) {
                 alert('Заявка не найдена');
                 return;
@@ -350,6 +404,38 @@
         }
     }
 
+    async function generateAndAdd() {
+        const nameInput = document.getElementById('newMemberName');
+        const name = nameInput.value.trim();
+
+        if (!name) {
+            alert('Введи имя участницы!');
+            return;
+        }
+
+        try {
+            const title = randomTitle();
+            const emoji = randomEmoji();
+
+            const response = await fetchJSON(API_URL + '/members', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    title,
+                    emoji
+                })
+            });
+
+            alert(`✨ ${name} добавлена как "${title.split(' ').slice(1).join(' ')}"!`);
+            nameInput.value = '';
+            loadMembers();
+        } catch (e) {
+            console.error(e);
+            alert('Ошибка при добавлении участницы');
+        }
+    }
+
     async function deleteMember(id) {
         if (!confirm('Удалить участницу?')) return;
         try {
@@ -360,12 +446,13 @@
         }
     }
 
-    // экспортируем функции в глобал, чтобы работал onclick
+    // экспортируем функции в глобал
     window.approveApp = approveApp;
     window.rejectApp = rejectApp;
     window.deleteApp = deleteApp;
     window.addFromApp = addFromApp;
     window.deleteMember = deleteMember;
+    window.generateAndAdd = generateAndAdd;
 
     loadApplications();
     loadMembers();
