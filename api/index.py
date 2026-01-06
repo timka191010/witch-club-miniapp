@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 import logging
 import random
+import requests
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -78,7 +79,6 @@ def save_json(filepath, data):
 
 def send_telegram_message(chat_id, message_text):
     try:
-        import requests
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         response = requests.post(url, json={
             'chat_id': chat_id,
