@@ -58,6 +58,7 @@
             gap: 30px;
             margin: 40px 0;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         nav a {
@@ -75,6 +76,20 @@
             color: #a8edea;
             border-bottom-color: #a8edea;
             transform: translateY(-2px);
+        }
+
+        nav a[href="/admin.html"] {
+            color: #fed6e3;
+            border-bottom-color: transparent;
+            margin-left: 20px;
+            padding-left: 20px;
+            border-left: 2px solid rgba(254,214,227,0.3);
+        }
+
+        nav a[href="/admin.html"]:hover {
+            color: #fff;
+            border-bottom-color: #fed6e3;
+            border-left-color: #fed6e3;
         }
 
         .section {
@@ -336,11 +351,18 @@
 
             nav {
                 gap: 15px;
+                flex-direction: column;
             }
 
             nav a {
                 padding: 8px 15px;
                 font-size: 0.9em;
+            }
+
+            nav a[href="/admin.html"] {
+                margin-left: 0;
+                padding-left: 15px;
+                border-left: none;
             }
 
             .profile-section {
@@ -363,6 +385,7 @@
             <a class="nav-link active" data-section="members">👥 Участницы</a>
             <a class="nav-link" data-section="survey">📝 Анкета</a>
             <a class="nav-link" data-section="profile">📊 Профиль</a>
+            <a href="/admin.html">🔑 Админка</a>
         </nav>
 
         <!-- УЧАСТНИЦЫ -->
@@ -519,7 +542,7 @@
             const formData = {
                 name: this.name.value,
                 birthDate: this.birthDate.value,
-                status: this.status.value,
+                statusField: this.status.value,
                 children: this.children.value,
                 interests: this.interests.value,
                 topics: this.topics.value,
