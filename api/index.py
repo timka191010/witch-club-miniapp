@@ -9,7 +9,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# ИСПРАВЛЕННАЯ СТРОКА - используем абсолютные пути
+# ИСПРАВЛЕННЫЕ ПУТИ
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 STATIC_DIR = os.path.join(BASE_DIR, 'public')
@@ -97,6 +97,12 @@ def admin():
     """Админ страница"""
     logger.debug(f"Admin page")
     return render_template('admin.html')
+
+@app.route('/admin_login.html')
+def admin_login():
+    """Админ логин"""
+    logger.debug(f"Admin login page")
+    return render_template('admin_login.html')
 
 @app.route('/admin_dashboard.html')
 def admin_dashboard():
