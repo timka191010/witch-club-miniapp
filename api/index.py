@@ -19,7 +19,7 @@ app.secret_key = 'witch_club_secret_2025'
 
 SURVEYS_FILE = 'surveys.json'
 MEMBERS_FILE = 'members.json'
-ADMIN_PASSWORD = 'maria2026'
+ADMIN_PASSWORD = 'maria2025'
 
 # TELEGRAM CONFIG
 TELEGRAM_BOT_TOKEN = '8500508012:AAEMuWXEsZsUfiDiOV50xFw928Tn7VUJRH8'
