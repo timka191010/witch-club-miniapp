@@ -206,6 +206,19 @@ def get_applications():
         logger.error(f'Applications fetch error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/applications/<int:app_id>', methods=['GET'])
+def get_application(app_id):
+    try:
+        surveys = load_surveys()
+        application = next((s for s in surveys if s.get('id') == app_id), None)
+        
+        if application:
+            return jsonify({'success': True, 'application': application}), 200
+        return jsonify({'success': False, 'message': 'Application not found'}), 404
+    except Exception as e:
+        logger.error(f'Application fetch error: {e}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/applications/<int:app_id>', methods=['PATCH'])
 def update_application(app_id):
     try:
