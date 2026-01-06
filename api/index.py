@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import os
@@ -10,13 +10,8 @@ import requests
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Setup paths
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
-STATIC_DIR = os.path.join(BASE_DIR, 'public')
-
 # Create Flask app
-app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=STATIC_DIR)
+app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = 'witch-club-secret-2025'
 
@@ -93,7 +88,7 @@ def send_telegram_message(chat_id, message_text):
 # Routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return jsonify({'status': 'ok', 'message': 'Witch Club API'})
 
 @app.route('/api/members', methods=['GET'])
 def api_members():
@@ -109,6 +104,9 @@ def api_surveys():
 def submit_survey():
     try:
         data = request.json
+        if not data or not data.get('name'):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
         surveys = load_json(SURVEYS_FILE)
         if not isinstance(surveys, dict):
             surveys = {}
@@ -132,12 +130,12 @@ def submit_survey():
         if save_json(SURVEYS_FILE, surveys):
             msg = f"📝 Новая заявка от: {data.get('name')}"
             send_telegram_message(TELEGRAM_CHAT_ID, msg)
-            return jsonify({'success': True, 'survey': surveys[survey_id]})
+            return jsonify({'success': True, 'survey': surveys[survey_id]}), 200
         
         return jsonify({'error': 'Save failed'}), 500
     except Exception as e:
         logger.error(f"Error submitting survey: {e}")
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/approve/<survey_id>', methods=['POST'])
 def approve_survey(survey_id):
@@ -189,10 +187,19 @@ def approve_survey(survey_id):
 Поздравительное сообщение отправлено! 🎉"""
         send_telegram_message(TELEGRAM_CHAT_ID, admin_msg)
         
-        return jsonify({'success': True, 'member': members[member_id]})
+        return jsonify({'success': True, 'member': members[member_id]}), 200
     except Exception as e:
         logger.error(f"Error approving survey: {e}")
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), 500
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({'error': 'Not found'}), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    logger.error(f"Server error: {e}")
+    return jsonify({'error': 'Server error'}), 500
 
 # WSGI handler for Vercel
 handler = app
