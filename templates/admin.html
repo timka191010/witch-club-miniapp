@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔮 Админка Ведьм</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #a8edea 0%, #fed6e3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        p {
+            color: #b19cd9;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        a {
+            display: block;
+            padding: 12px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .btn-login {
+            background: linear-gradient(90deg, #a8edea, #fed6e3);
+            color: #0f0c29;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(168,237,234,0.3);
+        }
+        .btn-dashboard {
+            background: rgba(168,237,234,0.15);
+            color: #a8edea;
+            border-color: #a8edea;
+        }
+        .btn-dashboard:hover {
+            background: rgba(168,237,234,0.25);
+        }
+        .btn-stats {
+            background: rgba(254,214,227,0.15);
+            color: #fed6e3;
+            border-color: #fed6e3;
+        }
+        .btn-stats:hover {
+            background: rgba(254,214,227,0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔮 Админка Ведьм</h1>
+        <p>Управление клубом «Ведьмы не стареют»</p>
+        
+        <div class="links">
+            <a href="/admin_login.html" class="btn-login">🚪 Вход в админку</a>
+            <a href="/admin_dashboard.html" class="btn-dashboard">📝 Заявки</a>
+            <a href="/admin_stats.html" class="btn-stats">📊 Статистика</a>
+        </div>
+    </div>
+</body>
+</html>
