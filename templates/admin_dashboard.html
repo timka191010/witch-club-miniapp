@@ -2,39 +2,97 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>📋 Заявки — Админка</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔮 Админ Панель - Ведьмы Не Стареют</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0e0;
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 20px; background: rgba(48,43,99,0.5); border-radius: 12px; border: 1px solid rgba(168,237,234,0.2); }
-        h1 { font-size: 1.6rem; background: linear-gradient(90deg, #a8edea, #fed6e3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .logout-btn { padding: 8px 16px; background: rgba(255,107,107,0.8); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .logout-btn:hover { background: rgba(255,107,107,1); }
-        
-        .tabs { display: flex; gap: 14px; border-bottom: 2px solid rgba(168,237,234,0.35); margin-bottom: 20px; }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(168,237,234,0.1);
+            border: 2px solid rgba(168,237,234,0.3);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            background: linear-gradient(90deg, #a8edea, #fed6e3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: rgba(255,107,107,0.8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,107,107,1);
+            transform: scale(1.05);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 14px;
+            border-bottom: 2px solid rgba(168,237,234,0.35);
+            margin-bottom: 20px;
+        }
+
         .tab-btn {
-            padding: 10px 16px;
+            padding: 12px 20px;
             border: none;
             background: transparent;
             color: #b19cd9;
             font-weight: 600;
             cursor: pointer;
             border-bottom: 3px solid transparent;
-            font-size: 0.95rem;
+            font-size: 1rem;
             transition: all 0.3s;
         }
-        .tab-btn.active { color: #a8edea; border-bottom-color: #a8edea; }
-        .tab { display: none; }
-        .tab.active { display: block; }
-        
+
+        .tab-btn.active {
+            color: #a8edea;
+            border-bottom-color: #a8edea;
+        }
+
+        .tab {
+            display: none;
+        }
+
+        .tab.active {
+            display: block;
+        }
+
+        /* ТАБЛИЦА */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -44,26 +102,34 @@
             overflow: hidden;
             margin-top: 10px;
         }
+
         th {
             background: rgba(168,237,234,0.1);
-            padding: 12px;
+            padding: 14px;
             text-align: left;
             font-weight: 600;
             border-bottom: 2px solid rgba(168,237,234,0.3);
             color: #a8edea;
         }
+
         td {
             padding: 12px;
             border-bottom: 1px solid rgba(168,237,234,0.1);
         }
-        tr:hover { background: rgba(168,237,234,0.08); }
-        
+
+        tr:hover {
+            background: rgba(168,237,234,0.08);
+        }
+
+        /* КНОПКИ */
         .btn-group {
             display: flex;
             gap: 6px;
+            flex-wrap: wrap;
         }
+
         .btn {
-            padding: 6px 10px;
+            padding: 6px 12px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
@@ -71,27 +137,53 @@
             font-weight: 600;
             transition: all 0.2s;
         }
+
         .btn-view {
             background: rgba(100,200,255,0.7);
             color: #fff;
         }
-        .btn-view:hover { background: rgba(100,200,255,1); }
+
+        .btn-view:hover {
+            background: rgba(100,200,255,1);
+        }
+
         .btn-approve {
             background: rgba(76,175,80,0.7);
             color: #fff;
         }
-        .btn-approve:hover { background: rgba(76,175,80,1); }
+
+        .btn-approve:hover {
+            background: rgba(76,175,80,1);
+        }
+
         .btn-reject {
             background: rgba(244,67,54,0.7);
             color: #fff;
         }
-        .btn-reject:hover { background: rgba(244,67,54,1); }
+
+        .btn-reject:hover {
+            background: rgba(244,67,54,1);
+        }
+
+        .btn-edit {
+            background: rgba(156,39,176,0.7);
+            color: #fff;
+        }
+
+        .btn-edit:hover {
+            background: rgba(156,39,176,1);
+        }
+
         .btn-delete {
             background: rgba(150,20,20,0.7);
             color: #fff;
         }
-        .btn-delete:hover { background: rgba(150,20,20,1); }
-        
+
+        .btn-delete:hover {
+            background: rgba(150,20,20,1);
+        }
+
+        /* СТАТУСЫ */
         .status {
             display: inline-block;
             padding: 4px 8px;
@@ -99,10 +191,23 @@
             font-size: 0.8rem;
             font-weight: 600;
         }
-        .status-pending { background: rgba(255,152,0,0.3); color: #ffb74d; }
-        .status-approved { background: rgba(76,175,80,0.3); color: #81c784; }
-        .status-rejected { background: rgba(244,67,54,0.3); color: #ef5350; }
-        
+
+        .status-pending {
+            background: rgba(255,152,0,0.3);
+            color: #ffb74d;
+        }
+
+        .status-approved {
+            background: rgba(76,175,80,0.3);
+            color: #81c784;
+        }
+
+        .status-rejected {
+            background: rgba(244,67,54,0.3);
+            color: #ef5350;
+        }
+
+        /* МОДАЛЬНОЕ ОКНО */
         .modal {
             display: none;
             position: fixed;
@@ -115,7 +220,11 @@
             align-items: center;
             justify-content: center;
         }
-        .modal.active { display: flex; }
+
+        .modal.active {
+            display: flex;
+        }
+
         .modal-content {
             background: linear-gradient(135deg, #0f0c29, #302b63);
             border: 2px solid #a8edea;
@@ -127,6 +236,7 @@
             overflow-y: auto;
             position: relative;
         }
+
         .modal-close {
             position: absolute;
             top: 12px;
@@ -141,30 +251,51 @@
             color: #0f0c29;
             font-weight: bold;
         }
-        .modal-close:hover { background: #fed6e3; }
-        
-        .modal h2 { margin-bottom: 20px; color: #a8edea; }
-        .modal-field { margin-bottom: 16px; }
-        .modal-field label { display: block; font-size: 0.85rem; color: #b19cd9; margin-bottom: 4px; font-weight: 600; }
-        .modal-field value { display: block; padding: 8px; background: rgba(168,237,234,0.1); border-radius: 4px; word-break: break-word; }
-        
-        .empty-message {
-            text-align: center;
-            padding: 40px;
-            color: #b19cd9;
-            font-size: 1.1rem;
+
+        .modal-close:hover {
+            background: #fed6e3;
         }
-        
-        .add-member-form {
-            background: rgba(48,43,99,0.4);
-            border: 1px solid rgba(168,237,234,0.2);
-            border-radius: 8px;
-            padding: 20px;
+
+        .modal h2 {
             margin-bottom: 20px;
+            color: #a8edea;
+            font-size: 1.5em;
         }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 0.9rem; color: #b19cd9; margin-bottom: 4px; font-weight: 600; }
-        .form-group input {
+
+        .modal-field {
+            margin-bottom: 16px;
+        }
+
+        .modal-field label {
+            display: block;
+            font-size: 0.85rem;
+            color: #b19cd9;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .modal-field value {
+            display: block;
+            padding: 8px;
+            background: rgba(168,237,234,0.1);
+            border-radius: 4px;
+            word-break: break-word;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            color: #b19cd9;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
             width: 100%;
             padding: 8px 12px;
             background: rgba(255,255,255,0.08);
@@ -172,8 +303,16 @@
             border-radius: 4px;
             color: #fff;
             font-family: system-ui, sans-serif;
+            font-size: 0.9rem;
         }
-        .form-group input:focus { outline: none; border-color: #a8edea; box-shadow: 0 0 8px rgba(168,237,234,0.2); }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #a8edea;
+            box-shadow: 0 0 8px rgba(168,237,234,0.2);
+        }
+
         .btn-primary {
             width: 100%;
             padding: 10px;
@@ -184,22 +323,124 @@
             font-weight: 700;
             cursor: pointer;
             font-size: 0.95rem;
+            transition: all 0.3s;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(168,237,234,0.3); }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(168,237,234,0.3);
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .emoji-btn {
+            padding: 10px;
+            border: 2px solid rgba(168,237,234,0.2);
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.5em;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .emoji-btn:hover,
+        .emoji-btn.selected {
+            border-color: #a8edea;
+            background: rgba(168,237,234,0.1);
+        }
+
+        .title-suggestions {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .title-suggestion-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(168,237,234,0.1);
+            border: 1px solid rgba(168,237,234,0.2);
+            color: #a8edea;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: system-ui, sans-serif;
+            transition: all 0.2s;
+        }
+
+        .title-suggestion-btn:hover {
+            background: rgba(168,237,234,0.2);
+        }
+
+        .add-member-form {
+            background: rgba(48,43,99,0.4);
+            border: 1px solid rgba(168,237,234,0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .add-member-form h3 {
+            margin-bottom: 16px;
+            color: #a8edea;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #b19cd9;
+            font-size: 1.1rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(168,237,234,0.1);
+            border: 1px solid rgba(168,237,234,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            color: #a8edea;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #b19cd9;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>📋 Панель управления</h1>
+        <header class="header">
+            <h1>🔮 Админ Панель</h1>
             <button class="logout-btn" onclick="logout()">Выход</button>
         </header>
-        
+
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('applications')">📝 Заявки</button>
             <button class="tab-btn" onclick="switchTab('members')">👑 Участницы</button>
+            <button class="tab-btn" onclick="switchTab('stats')">📊 Статистика</button>
         </div>
-        
+
         <!-- ЗАЯВКИ -->
         <div id="applications" class="tab active">
             <table id="applicationsTable">
@@ -214,20 +455,20 @@
                 </thead>
                 <tbody id="applicationsList"></tbody>
             </table>
-            <div id="applicationsEmpty" class="empty-message">Нет заявок</div>
+            <div id="applicationsEmpty" class="empty-message">📭 Нет заявок</div>
         </div>
-        
+
         <!-- УЧАСТНИЦЫ -->
         <div id="members" class="tab">
             <div class="add-member-form">
-                <h3 style="margin-bottom: 16px; color: #a8edea;">➕ Добавить участницу</h3>
+                <h3>➕ Добавить участницу</h3>
                 <div class="form-group">
                     <label>Имя:</label>
                     <input type="text" id="memberName" placeholder="Введи имя">
                 </div>
                 <button class="btn-primary" onclick="addMember()">Добавить</button>
             </div>
-            
+
             <table id="membersTable">
                 <thead>
                     <tr>
@@ -239,11 +480,16 @@
                 </thead>
                 <tbody id="membersList"></tbody>
             </table>
-            <div id="membersEmpty" class="empty-message">Нет участниц</div>
+            <div id="membersEmpty" class="empty-message">👻 Нет участниц</div>
+        </div>
+
+        <!-- СТАТИСТИКА -->
+        <div id="stats" class="tab">
+            <div class="stats" id="statsContainer"></div>
         </div>
     </div>
-    
-    <!-- МОДАЛЬНОЕ ОКНО ПРОСМОТРА АНКЕТЫ -->
+
+    <!-- ПРОСМОТР АНКЕТЫ -->
     <div id="viewModal" class="modal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal()">×</button>
@@ -252,9 +498,73 @@
         </div>
     </div>
 
+    <!-- РЕДАКТИРОВАНИЕ УЧАСТНИЦЫ -->
+    <div id="editMemberModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeEditModal()">×</button>
+            <h2>✏️ Редактировать участницу</h2>
+            <div class="form-group">
+                <label>Имя:</label>
+                <input type="text" id="editMemberName">
+            </div>
+            <div class="form-group">
+                <label>Титул:</label>
+                <input type="text" id="editMemberTitle" placeholder="Введи титул">
+                <div class="title-suggestions" id="titleSuggestions"></div>
+            </div>
+            <div class="form-group">
+                <label>Эмодзи:</label>
+                <div class="emoji-grid" id="emojiGrid"></div>
+            </div>
+            <button class="btn-primary" onclick="saveMemberEdit()">💾 Сохранить</button>
+        </div>
+    </div>
+
     <script>
         const EMOJIS = ['🔮','🌙','🧿','✨','🕯️','🌑','🧙‍♀️','🌸','🕊️','🌊','🍂','❄️','🌻','🦉','🪙','💫','⭐','🔥','🌿','💎','⚡','🦋'];
-        const TITLES = ['👑 Верховная Ведьма','⭐ Ведьма Звёздного Пути','🌿 Ведьма Трав и Эликсиров','🔥 Ведьма Огненного Круга','🌙 Ведьма Лунного Света','💎 Ведьма Кристаллов','⚡ Ведьма Грозовых Ветров','🦋 Ведьма Превращений'];
+        
+        const TITLES = [
+            '👑 Верховная Ведьма',
+            '⭐ Ведьма Звёздного Пути',
+            '🌿 Ведьма Трав и Эликсиров',
+            '🔥 Ведьма Огненного Круга',
+            '🌙 Ведьма Лунного Света',
+            '💎 Ведьма Кристаллов',
+            '⚡ Ведьма Грозовых Ветров',
+            '🦋 Ведьма Превращений',
+            '🔮 Чародейка Утренних Туманов',
+            '✨ Ведающая Путями Судьбы',
+            '🌸 Магиня Звёздного Ветра',
+            '🕊️ Берегиня Тишины',
+            '🌑 Чтица Линий Времени',
+            '🧿 Повелительница Чая и Таро',
+            '🕯️ Хранительница Теней',
+            '🌊 Ведьма Морских Глубин',
+            '🍂 Ведьма Осенних Листьев',
+            '❄️ Ведьма Ледяных Чар',
+            '🌻 Ведьма Золотых Нитей',
+            '🦉 Ведьма Ночной Мудрости',
+            '🧙‍♀️ Волшебница Забытых Слов',
+            '💫 Сотворительница Звёзд',
+            '🪙 Хранительница Древних Тайн',
+            '🔮 Ведьма Трёх Миров',
+            '✨ Воплотительница Желаний',
+            '🌙 Королева Ночного Неба',
+            '💎 Владычица Кристаллического Замка',
+            '🌿 Целительница Душ',
+            '⚡ Повелительница Грома',
+            '🦋 Королева Метаморфоз',
+            '🌊 Госпожа Волн',
+            '🍂 Танцовщица Осеннего Ветра',
+            '🕯️ Свечница Магических Огней',
+            '🧿 Провидица Темного Зеркала',
+            '🌸 Цветущая Королева',
+            '🕊️ Голубка Духов',
+            '🌑 Луна Тайных Знаний',
+        ];
+
+        let editingMemberId = null;
+        let selectedEmoji = null;
 
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -264,6 +574,7 @@
             
             if (tab === 'applications') loadApplications();
             if (tab === 'members') loadMembers();
+            if (tab === 'stats') loadStats();
         }
 
         async function loadApplications() {
@@ -276,7 +587,7 @@
                     data.applications.forEach(app => {
                         const date = new Date(app.createdAt).toLocaleDateString('ru-RU');
                         const statusClass = `status-${app.applicationStatus}`;
-                        const statusText = app.applicationStatus === 'pending' ? 'На рассмотрении' : 
+                        const statusText = app.applicationStatus === 'pending' ? '⏳ На рассмотрении' : 
                                          app.applicationStatus === 'approved' ? '✅ Одобрена' : '❌ Отклонена';
                         
                         html += `
@@ -287,9 +598,9 @@
                                 <td>${date}</td>
                                 <td>
                                     <div class="btn-group">
-                                        <button class="btn btn-view" onclick="viewApplication(${app.id})">👁️ Просмотр</button>
-                                        <button class="btn btn-approve" onclick="updateApplicationStatus(${app.id}, 'approved')">✅ Одобрить</button>
-                                        <button class="btn btn-reject" onclick="updateApplicationStatus(${app.id}, 'rejected')">❌ Отклонить</button>
+                                        <button class="btn btn-view" onclick="viewApplication(${app.id})">👁️</button>
+                                        <button class="btn btn-approve" onclick="updateApplicationStatus(${app.id}, 'approved')">✅</button>
+                                        <button class="btn btn-reject" onclick="updateApplicationStatus(${app.id}, 'rejected')">❌</button>
                                         <button class="btn btn-delete" onclick="deleteApplication(${app.id})">🗑️</button>
                                     </div>
                                 </td>
@@ -303,7 +614,7 @@
                     document.getElementById('applicationsEmpty').style.display = 'block';
                 }
             } catch (err) {
-                console.error('Load applications error:', err);
+                console.error('Error:', err);
             }
         }
 
@@ -340,11 +651,11 @@
                             <value>${app.interests}</value>
                         </div>
                         <div class="modal-field">
-                            <label>Любимые темы:</label>
+                            <label>Темы:</label>
                             <value>${app.topics}</value>
                         </div>
                         <div class="modal-field">
-                            <label>Цель участия:</label>
+                            <label>Цель:</label>
                             <value>${app.goal}</value>
                         </div>
                         <div class="modal-field">
@@ -356,7 +667,7 @@
                             <value>${app.applicationStatus}</value>
                         </div>
                         <div class="modal-field">
-                            <label>Дата подачи:</label>
+                            <label>Дата:</label>
                             <value>${new Date(app.createdAt).toLocaleString('ru-RU')}</value>
                         </div>
                     `;
@@ -364,8 +675,8 @@
                     document.getElementById('viewModal').classList.add('active');
                 }
             } catch (err) {
-                console.error('View application error:', err);
-                alert('❌ Ошибка при загрузке анкеты');
+                console.error('Error:', err);
+                alert('❌ Ошибка');
             }
         }
 
@@ -384,16 +695,17 @@
                 
                 if (data.success) {
                     loadApplications();
+                    loadStats();
                 } else {
-                    alert('❌ Ошибка при обновлении статуса');
+                    alert('❌ Ошибка');
                 }
             } catch (err) {
-                console.error('Update status error:', err);
+                console.error('Error:', err);
             }
         }
 
         async function deleteApplication(appId) {
-            if (!confirm('🗑️ Точно удалить заявку?')) return;
+            if (!confirm('🗑️ Удалить заявку?')) return;
             
             try {
                 const res = await fetch(`/api/applications/${appId}`, { method: 'DELETE' });
@@ -401,11 +713,12 @@
                 
                 if (data.success) {
                     loadApplications();
+                    loadStats();
                 } else {
-                    alert('❌ Ошибка при удалении');
+                    alert('❌ Ошибка');
                 }
             } catch (err) {
-                console.error('Delete error:', err);
+                console.error('Error:', err);
             }
         }
 
@@ -423,7 +736,10 @@
                                 <td>${member.name}</td>
                                 <td>${member.title}</td>
                                 <td>
-                                    <button class="btn btn-delete" onclick="deleteMember(${member.id})">🗑️ Удалить</button>
+                                    <div class="btn-group">
+                                        <button class="btn btn-edit" onclick="openEditMember(${member.id}, '${member.name.replace(/'/g, "\\'")}', '${member.title.replace(/'/g, "\\'")}', '${member.emoji}')">✏️</button>
+                                        <button class="btn btn-delete" onclick="deleteMember(${member.id})">🗑️</button>
+                                    </div>
                                 </td>
                             </tr>
                         `;
@@ -435,8 +751,79 @@
                     document.getElementById('membersEmpty').style.display = 'block';
                 }
             } catch (err) {
-                console.error('Load members error:', err);
+                console.error('Error:', err);
             }
+        }
+
+        function openEditMember(id, name, title, emoji) {
+            editingMemberId = id;
+            selectedEmoji = emoji;
+            
+            document.getElementById('editMemberName').value = name;
+            document.getElementById('editMemberTitle').value = title;
+            
+            const emojiGrid = document.getElementById('emojiGrid');
+            emojiGrid.innerHTML = EMOJIS.map(e => `
+                <button type="button" class="emoji-btn ${e === emoji ? 'selected' : ''}" onclick="selectMemberEmoji('${e}')">${e}</button>
+            `).join('');
+            
+            renderTitleSuggestions();
+            document.getElementById('editMemberModal').classList.add('active');
+        }
+
+        function selectMemberEmoji(emoji) {
+            selectedEmoji = emoji;
+            document.querySelectorAll('.emoji-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        function renderTitleSuggestions() {
+            const input = document.getElementById('editMemberTitle').value.toLowerCase();
+            const suggestions = TITLES.filter(t => t.toLowerCase().includes(input)).slice(0, 5);
+            const div = document.getElementById('titleSuggestions');
+            
+            if (suggestions.length > 0) {
+                div.innerHTML = suggestions.map(t => `
+                    <button type="button" class="title-suggestion-btn" onclick="setMemberTitle('${t.replace(/'/g, "\\'")}')">${t}</button>
+                `).join('');
+            } else {
+                div.innerHTML = '';
+            }
+        }
+
+        function setMemberTitle(title) {
+            document.getElementById('editMemberTitle').value = title;
+            renderTitleSuggestions();
+        }
+
+        async function saveMemberEdit() {
+            const name = document.getElementById('editMemberName').value;
+            const title = document.getElementById('editMemberTitle').value;
+            const emoji = selectedEmoji;
+            
+            try {
+                const res = await fetch(`/api/members/${editingMemberId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, title, emoji })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    closeEditModal();
+                    loadMembers();
+                } else {
+                    alert('❌ Ошибка');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editMemberModal').classList.remove('active');
+            editingMemberId = null;
+            selectedEmoji = null;
         }
 
         async function addMember() {
@@ -462,15 +849,15 @@
                     document.getElementById('memberName').value = '';
                     loadMembers();
                 } else {
-                    alert('❌ Ошибка при добавлении');
+                    alert('❌ Ошибка');
                 }
             } catch (err) {
-                console.error('Add member error:', err);
+                console.error('Error:', err);
             }
         }
 
         async function deleteMember(memberId) {
-            if (!confirm('🗑️ Точно удалить участницу?')) return;
+            if (!confirm('🗑️ Удалить участницу?')) return;
             
             try {
                 const res = await fetch(`/api/members/${memberId}`, { method: 'DELETE' });
@@ -479,10 +866,45 @@
                 if (data.success) {
                     loadMembers();
                 } else {
-                    alert('❌ Ошибка при удалении');
+                    alert('❌ Ошибка');
                 }
             } catch (err) {
-                console.error('Delete member error:', err);
+                console.error('Error:', err);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                
+                if (data.success) {
+                    const html = `
+                        <div class="stat-card">
+                            <div class="stat-number">${data.members}</div>
+                            <div class="stat-label">👑 Участниц</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${data.total}</div>
+                            <div class="stat-label">📝 Всего заявок</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${data.pending}</div>
+                            <div class="stat-label">⏳ На рассмотрении</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${data.approved}</div>
+                            <div class="stat-label">✅ Одобрено</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${data.rejected}</div>
+                            <div class="stat-label">❌ Отклонено</div>
+                        </div>
+                    `;
+                    document.getElementById('statsContainer').innerHTML = html;
+                }
+            } catch (err) {
+                console.error('Error:', err);
             }
         }
 
@@ -490,7 +912,13 @@
             window.location.href = '/logout';
         }
 
-        // Load on init
+        document.addEventListener('input', (e) => {
+            if (e.target.id === 'editMemberTitle') {
+                renderTitleSuggestions();
+            }
+        });
+
+        // Инит
         loadApplications();
     </script>
 </body>
