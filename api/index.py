@@ -23,17 +23,18 @@ app.config['PERMANENT_SESSION_LIFETIME'] = 2592000  # 30 days
 
 # ===== 8 ОРИГИНАЛЬНЫХ ВЕДЬМ =====
 MEMBERS = [
-    {"emoji": "🔮", "name": "Мария Зуева", "title": "👑 Верховная Ведьма"},
-    {"emoji": "✨", "name": "Юлия Пиндюрина", "title": "⭐ Ведьма Звёздного Пути"},
-    {"emoji": "🌿", "name": "Елена Клыкова", "title": "🌿 Ведьма Трав и Эликсиров"},
-    {"emoji": "🕯️", "name": "Наталья Гудкова", "title": "🔥 Ведьма Огненного Круга"},
-    {"emoji": "🌕", "name": "Екатерина Когай", "title": "🌙 Ведьма Лунного Света"},
-    {"emoji": "💎", "name": "Елена Пустовит", "title": "💎 Ведьма Кристаллов"},
-    {"emoji": "🌪️", "name": "Елена Правосуд", "title": "⚡ Ведьма Грозовых Ветров"},
-    {"emoji": "🦋", "name": "Анна Моисеева", "title": "🦋 Ведьма Превращений"},
+    {"id": 1, "emoji": "🔮", "name": "Мария Зуева", "title": "👑 Верховная Ведьма"},
+    {"id": 2, "emoji": "✨", "name": "Юлия Пиндюрина", "title": "⭐ Ведьма Звёздного Пути"},
+    {"id": 3, "emoji": "🌿", "name": "Елена Клыкова", "title": "🌿 Ведьма Трав и Эликсиров"},
+    {"id": 4, "emoji": "🕯️", "name": "Наталья Гудкова", "title": "🔥 Ведьма Огненного Круга"},
+    {"id": 5, "emoji": "🌕", "name": "Екатерина Когай", "title": "🌙 Ведьма Лунного Света"},
+    {"id": 6, "emoji": "💎", "name": "Елена Пустовит", "title": "💎 Ведьма Кристаллов"},
+    {"id": 7, "emoji": "🌪️", "name": "Елена Правосуд", "title": "⚡ Ведьма Грозовых Ветров"},
+    {"id": 8, "emoji": "🦋", "name": "Анна Моисеева", "title": "🦋 Ведьма Превращений"},
 ]
 
 SURVEYS_FILE = '/tmp/surveys.json'
+next_member_id = max([m.get('id', 0) for m in MEMBERS], default=0) + 1
 
 def ensure_surveys_file():
     """Создаёт файл если его нет"""
@@ -128,6 +129,33 @@ def profile():
     logger.debug(f"Profile page, user_id: {session.get('user_id')}")
     return render_template('profile.html')
 
+# ============ API ROUTES - ADMIN AUTH ============
+
+@app.route('/api/admin_login', methods=['POST'])
+def api_admin_login():
+    """Логин в админку"""
+    try:
+        data = request.json
+        username = data.get('username')
+        password = data.get('password')
+        
+        # Простая проверка
+        ADMIN_USERNAME = 'admin'
+        ADMIN_PASSWORD = 'ведьма2025'
+        
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            session['admin_logged_in'] = True
+            session.permanent = True
+            logger.info(f"Admin login successful")
+            return jsonify({'success': True, 'message': 'Login successful'}), 200
+        else:
+            logger.warning(f"Failed admin login attempt")
+            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+            
+    except Exception as e:
+        logger.error(f"Error in api_admin_login: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============ API ROUTES - SURVEY ============
 
 @app.route('/api/submit_survey', methods=['POST'])
@@ -157,6 +185,7 @@ def api_submit_survey():
             'goal': data.get('goal', ''),
             'source': data.get('source', ''),
             'applicationStatus': 'pending',
+            'createdAt': datetime.now().isoformat(),
             'timestamp': datetime.now().isoformat()
         }
         
@@ -371,6 +400,168 @@ def api_delete_profile(profile_id):
         logger.error(f"Error in api_delete_profile: {e}", exc_info=True)
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ API ROUTES - APPLICATIONS ============
+
+@app.route('/api/applications', methods=['GET'])
+def api_get_applications():
+    """Получить все заявки"""
+    try:
+        surveys = load_surveys()
+        logger.info(f"Fetched {len(surveys)} applications")
+        return jsonify({
+            'success': True,
+            'applications': surveys,
+            'total': len(surveys)
+        }), 200
+    except Exception as e:
+        logger.error(f"Error in api_get_applications: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/applications/<int:app_id>', methods=['GET'])
+def api_get_application(app_id):
+    """Получить одну заявку"""
+    try:
+        app = get_user_profile(app_id)
+        if app:
+            return jsonify({'success': True, 'application': app}), 200
+        return jsonify({'success': False, 'message': 'Not found'}), 404
+    except Exception as e:
+        logger.error(f"Error in api_get_application: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/applications/<int:app_id>', methods=['PATCH'])
+def api_update_application_status(app_id):
+    """Обновить статус заявки"""
+    try:
+        data = request.json
+        new_status = data.get('status')  # pending, approved, rejected
+        
+        if new_status not in ['pending', 'approved', 'rejected']:
+            return jsonify({'success': False, 'error': 'Invalid status'}), 400
+        
+        surveys = load_surveys()
+        
+        for survey in surveys:
+            if survey.get('id') == app_id:
+                survey['applicationStatus'] = new_status
+                if save_surveys(surveys):
+                    logger.info(f"Updated application {app_id} status to {new_status}")
+                    return jsonify({
+                        'success': True,
+                        'message': f'Status updated to {new_status}',
+                        'application': survey
+                    }), 200
+                else:
+                    return jsonify({'success': False, 'error': 'Failed to update'}), 500
+        
+        return jsonify({'success': False, 'message': 'Not found'}), 404
+        
+    except Exception as e:
+        logger.error(f"Error in api_update_application_status: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/applications/<int:app_id>', methods=['DELETE'])
+def api_delete_application(app_id):
+    """Удалить заявку"""
+    try:
+        surveys = load_surveys()
+        original_count = len(surveys)
+        
+        surveys = [s for s in surveys if s.get('id') != app_id]
+        
+        if len(surveys) < original_count:
+            if save_surveys(surveys):
+                logger.info(f"Deleted application {app_id}")
+                return jsonify({'success': True, 'message': 'Application deleted'}), 200
+            else:
+                return jsonify({'success': False, 'error': 'Failed to delete'}), 500
+        else:
+            return jsonify({'success': False, 'message': 'Not found'}), 404
+            
+    except Exception as e:
+        logger.error(f"Error in api_delete_application: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ API ROUTES - MEMBERS ============
+
+@app.route('/api/members', methods=['GET'])
+def api_get_members_list():
+    """Получить список участниц"""
+    try:
+        logger.info(f"Fetched {len(MEMBERS)} members")
+        return jsonify({
+            'success': True,
+            'members': MEMBERS,
+            'count': len(MEMBERS)
+        }), 200
+    except Exception as e:
+        logger.error(f"Error in api_get_members_list: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/members', methods=['POST'])
+def api_add_member():
+    """Добавить новую участницу"""
+    try:
+        data = request.json
+        name = data.get('name')
+        title = data.get('title')
+        emoji = data.get('emoji')
+        
+        if not name:
+            return jsonify({'success': False, 'error': 'Name is required'}), 400
+        
+        global next_member_id
+        new_member = {
+            'id': next_member_id,
+            'name': name,
+            'title': title or '',
+            'emoji': emoji or '🔮'
+        }
+        next_member_id += 1
+        
+        MEMBERS.append(new_member)
+        logger.info(f"Added new member: {name}")
+        
+        return jsonify({
+            'success': True,
+            'member': new_member,
+            'message': 'Member added'
+        }), 201
+        
+    except Exception as e:
+        logger.error(f"Error in api_add_member: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/members/<int:member_id>', methods=['GET'])
+def api_get_member(member_id):
+    """Получить одного участника"""
+    try:
+        member = next((m for m in MEMBERS if m.get('id') == member_id), None)
+        if member:
+            return jsonify({'success': True, 'member': member}), 200
+        return jsonify({'success': False, 'message': 'Not found'}), 404
+    except Exception as e:
+        logger.error(f"Error in api_get_member: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/members/<int:member_id>', methods=['DELETE'])
+def api_delete_member(member_id):
+    """Удалить участницу"""
+    try:
+        original_count = len(MEMBERS)
+        global MEMBERS
+        MEMBERS = [m for m in MEMBERS if m.get('id') != member_id]
+        
+        if len(MEMBERS) < original_count:
+            logger.info(f"Deleted member {member_id}")
+            return jsonify({'success': True, 'message': 'Member deleted'}), 200
+        else:
+            return jsonify({'success': False, 'message': 'Not found'}), 404
+            
+    except Exception as e:
+        logger.error(f"Error in api_delete_member: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============ API ROUTES - UTILITY ============
 
 @app.route('/api/session', methods=['GET'])
@@ -381,20 +572,6 @@ def api_get_session():
         'user_name': session.get('user_name'),
         'has_session': 'user_id' in session
     }), 200
-
-@app.route('/api/members', methods=['GET'])
-def api_get_members():
-    """Получить список участниц"""
-    try:
-        logger.info(f"Fetched {len(MEMBERS)} members")
-        return jsonify({
-            'success': True,
-            'members': MEMBERS,
-            'count': len(MEMBERS)
-        }), 200
-    except Exception as e:
-        logger.error(f"Error in api_get_members: {e}", exc_info=True)
-        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/stats', methods=['GET'])
 def api_stats():
