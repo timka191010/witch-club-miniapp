@@ -1,13 +1,19 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template_string, redirect, url_for, session
 from datetime import datetime
+from functools import wraps
 import json
 import os
 
 app = Flask(__name__)
+app.secret_key = 'witch_club_secret_2024'
 
-RESPONSES_FILE = 'responses.json'
+RESPONSES_FILE = 'applications.json'
+MEMBERS_FILE = 'members.json'
+ADMIN_PASSWORD = 'ведьмы123'
 
-def load_responses():
+# ===================== ФУНКЦИИ ДАННЫХ =====================
+
+def load_applications():
     if os.path.exists(RESPONSES_FILE):
         try:
             with open(RESPONSES_FILE, 'r', encoding='utf-8') as f:
@@ -16,9 +22,32 @@ def load_responses():
             return []
     return []
 
-def save_responses(responses):
+def save_applications(apps):
     with open(RESPONSES_FILE, 'w', encoding='utf-8') as f:
-        json.dump(responses, f, ensure_ascii=False, indent=2)
+        json.dump(apps, f, ensure_ascii=False, indent=2)
+
+def load_members():
+    if os.path.exists(MEMBERS_FILE):
+        try:
+            with open(MEMBERS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+def save_members(members):
+    with open(MEMBERS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(members, f, ensure_ascii=False, indent=2)
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'admin_logged_in' not in session:
+            return redirect(url_for('admin_login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ===================== ГЛАВНАЯ СТРАНИЦА =====================
 
 @app.route('/')
 def index():
@@ -157,6 +186,8 @@ def index():
 </body>
 </html>'''
 
+# ===================== API ENDPOINTS =====================
+
 @app.route('/api/survey', methods=['POST'])
 def survey():
     try:
@@ -165,15 +196,18 @@ def survey():
         if not data.get('name'):
             return jsonify({'error': 'Имя обязательно'}), 400
         
-        response = {
+        application = {
+            'id': len(load_applications()) + 1,
             'timestamp': datetime.now().isoformat(),
             'name': data.get('name', '').strip(),
-            'telegramUsername': data.get('telegramUsername', '').strip()
+            'telegramUsername': data.get('telegramUsername', '').strip(),
+            'status': 'pending',
+            'createdAt': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         
-        responses = load_responses()
-        responses.append(response)
-        save_responses(responses)
+        applications = load_applications()
+        applications.append(application)
+        save_applications(applications)
         
         return jsonify({'success': True, 'message': 'Спасибо! Ваша заявка принята.'}), 200
         
@@ -183,22 +217,282 @@ def survey():
 @app.route('/api/responses', methods=['GET'])
 def get_responses():
     try:
-        responses = load_responses()
-        return jsonify({'success': True, 'count': len(responses), 'responses': responses}), 200
+        applications = load_applications()
+        return jsonify({'success': True, 'count': len(applications), 'responses': applications}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
     try:
-        responses = load_responses()
-        return jsonify({'success': True, 'total': len(responses)}), 200
+        applications = load_applications()
+        members = load_members()
+        
+        stats = {
+            'total': len(applications),
+            'approved': len([a for a in applications if a.get('status') == 'approved']),
+            'pending': len([a for a in applications if a.get('status') == 'pending']),
+            'rejected': len([a for a in applications if a.get('status') == 'rejected']),
+            'membersCount': len(members)
+        }
+        
+        return jsonify({'success': True, 'stats': stats}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'ok', 'message': 'Witch Club API running'}), 200
+
+# ===================== АДМИНКА =====================
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        if password == ADMIN_PASSWORD:
+            session['admin_logged_in'] = True
+            return redirect(url_for('admin_dashboard'))
+        else:
+            return render_template_string('''<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход Админ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .login-container {
+            max-width: 420px;
+            width: 90%;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 { text-align: center; margin-bottom: 10px; font-size: 28px; color: #FFD700; }
+        .subtitle { text-align: center; color: rgba(255, 255, 255, 0.6); margin-bottom: 30px; font-size: 14px; }
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+        }
+        input:focus { outline: none; background: rgba(255, 255, 255, 0.15); border-color: #FFD700; }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #8B008B, #4B0082);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:hover { transform: translateY(-2px); }
+        .error { background: rgba(255, 68, 68, 0.15); border: 1px solid rgba(255, 68, 68, 0.3); color: #ff6b6b; padding: 12px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>👑 Админка</h1>
+        <p class="subtitle">Вход в панель управления</p>
+        <div class="error">Неверный пароль</div>
+        <form method="POST">
+            <input type="password" name="password" placeholder="Пароль" required>
+            <button type="submit">Войти</button>
+        </form>
+    </div>
+</body>
+</html>''', error=True)
+    
+    return render_template_string('''<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход Админ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .login-container {
+            max-width: 420px;
+            width: 90%;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 { text-align: center; margin-bottom: 10px; font-size: 28px; color: #FFD700; }
+        .subtitle { text-align: center; color: rgba(255, 255, 255, 0.6); margin-bottom: 30px; font-size: 14px; }
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+        }
+        input:focus { outline: none; background: rgba(255, 255, 255, 0.15); border-color: #FFD700; }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #8B008B, #4B0082);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>👑 Админка</h1>
+        <p class="subtitle">Вход в панель управления</p>
+        <form method="POST">
+            <input type="password" name="password" placeholder="Пароль" required>
+            <button type="submit">Войти</button>
+        </form>
+    </div>
+</body>
+</html>''')
+
+@app.route('/admin/dashboard')
+@login_required
+def admin_dashboard():
+    applications = load_applications()
+    members = load_members()
+    
+    return render_template_string('''<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель Администратора</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a0033, #330066);
+            color: white;
+            padding: 20px;
+        }
+        .admin-container { max-width: 1200px; margin: 0 auto; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header-buttons { display: flex; gap: 10px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; color: white; text-decoration: none; cursor: pointer; }
+        .logout-btn { background: #ff4444; }
+        .logout-btn:hover { background: #cc0000; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; text-align: center; }
+        .stat-number { font-size: 36px; font-weight: bold; color: #FFD700; }
+        .stat-label { font-size: 14px; color: rgba(255, 255, 255, 0.8); margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.05); border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        th { background: rgba(255, 255, 255, 0.1); font-weight: bold; }
+        tr:hover { background: rgba(255, 255, 255, 0.05); }
+        .status { padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; }
+        .status-pending { background: rgba(255, 165, 0, 0.2); color: #FFA500; }
+        .status-approved { background: rgba(0, 255, 0, 0.2); color: #00FF00; }
+        .status-rejected { background: rgba(255, 68, 68, 0.2); color: #FF4444; }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>👑 Панель Управления</h1>
+            <div class="header-buttons">
+                <a href="/admin/logout" class="btn logout-btn">Выход</a>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ total }}</div>
+                <div class="stat-label">Всего заявок</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ approved }}</div>
+                <div class="stat-label">Одобрено</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ pending }}</div>
+                <div class="stat-label">На рассмотрении</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ members_count }}</div>
+                <div class="stat-label">Участниц</div>
+            </div>
+        </div>
+
+        <h2>📋 Заявки</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Имя</th>
+                    <th>Telegram</th>
+                    <th>Статус</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>{{ app.id }}</td>
+                    <td>{{ app.name }}</td>
+                    <td>@{{ app.telegramUsername }}</td>
+                    <td><span class="status status-{{ app.status }}">{{ app.status }}</span></td>
+                    <td>{{ app.createdAt }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>''', 
+    total=len(applications),
+    approved=len([a for a in applications if a.get('status') == 'approved']),
+    pending=len([a for a in applications if a.get('status') == 'pending']),
+    members_count=len(members),
+    applications=applications
+    )
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.clear()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
