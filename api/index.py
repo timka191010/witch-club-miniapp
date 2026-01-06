@@ -4,6 +4,7 @@ import json
 import os
 from datetime import datetime
 import logging
+import requests
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,6 +19,11 @@ app.secret_key = 'witch-club-secret-2025-mystical-key-super-secure'
 app.config['SESSION_COOKIE_HTTPONLY'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = 2592000
+
+# TELEGRAM CONFIG
+TELEGRAM_BOT_TOKEN = '8500508012:AAEMuWXEsZsUfiDiOV50xFw928Tn7VUJRH8'
+TELEGRAM_CHAT_ID = '-5015136189'
+TELEGRAM_CHAT_LINK = 'https://t.me/+S32BT0FT6w0xYTBi'
 
 DATA_DIR = '/tmp'
 MEMBERS_FILE = os.path.join(DATA_DIR, 'members.json')
@@ -72,6 +78,40 @@ def save_surveys(surveys):
     except Exception as e:
         logger.error(f"Error saving surveys: {e}")
         return False
+
+# TELEGRAM ФУНКЦИЯ
+def send_telegram_message(text):
+    """Отправить сообщение в Telegram"""
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        data = {
+            'chat_id': TELEGRAM_CHAT_ID,
+            'text': text,
+            'parse_mode': 'HTML'
+        }
+        response = requests.post(url, json=data, timeout=5)
+        if response.status_code == 200:
+            logger.info('Telegram message sent successfully')
+            return True
+        else:
+            logger.error(f'Telegram error: {response.text}')
+            return False
+    except Exception as e:
+        logger.error(f'Telegram send error: {e}')
+        return False
+
+def send_welcome_message(name):
+    """Отправить приветственное сообщение при одобрении"""
+    message = f"""🎉 <b>Добро пожаловать, {name}!</b>
+
+Ты принята в клуб <b>"Ведьмы не стареют"</b>! ✨
+
+📱 <b>Присоединяйся к нам:</b>
+<a href="{TELEGRAM_CHAT_LINK}">👉 Войти в чат</a>
+
+Ждём встречи! 🔮🌙"""
+    
+    send_telegram_message(message)
 
 TITLES = [
     '👑 Верховная Ведьма',
@@ -227,9 +267,15 @@ def update_application(app_id):
         
         for survey in surveys:
             if survey.get('id') == app_id:
-                survey['applicationStatus'] = data.get('status')
+                new_status = data.get('status')
+                survey['applicationStatus'] = new_status
                 save_surveys(surveys)
-                logger.info(f'Application {app_id} updated to {data.get("status")}')
+                
+                # ОТПРАВИТЬ СООБЩЕНИЕ В ТЕЛЕГРАМ если одобрена
+                if new_status == 'approved':
+                    send_welcome_message(survey.get('name', 'Путешественница'))
+                
+                logger.info(f'Application {app_id} updated to {new_status}')
                 return jsonify({'success': True, 'application': survey}), 200
         
         return jsonify({'success': False, 'message': 'Application not found'}), 404
