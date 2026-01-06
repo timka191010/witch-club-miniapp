@@ -9,7 +9,12 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__, template_folder='../templates', static_folder='../public')
+# ИСПРАВЛЕННАЯ СТРОКА - используем абсолютные пути
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+STATIC_DIR = os.path.join(BASE_DIR, 'public')
+
+app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=STATIC_DIR)
 CORS(app, supports_credentials=True)
 app.secret_key = 'witch-club-secret-2025-mystical-key-super-secure'
 app.config['SESSION_COOKIE_HTTPONLY'] = False
@@ -71,7 +76,7 @@ def validate_survey_data(data):
     """Валидирует данные анкеты"""
     if not data.get('name'):
         return False, 'Name is required'
-    if not data.get('status'):
+    if not data.get('statusField'):
         return False, 'Status is required'
     if not data.get('goal'):
         return False, 'Goal is required'
@@ -86,6 +91,24 @@ def index():
     """Главная страница с участницами"""
     logger.debug(f"Index page, user_id: {session.get('user_id')}")
     return render_template('index.html', members=MEMBERS)
+
+@app.route('/admin.html')
+def admin():
+    """Админ страница"""
+    logger.debug(f"Admin page")
+    return render_template('admin.html')
+
+@app.route('/admin_dashboard.html')
+def admin_dashboard():
+    """Админ дашборд"""
+    logger.debug(f"Admin dashboard page")
+    return render_template('admin_dashboard.html')
+
+@app.route('/admin_stats.html')
+def admin_stats():
+    """Админ статистика"""
+    logger.debug(f"Admin stats page")
+    return render_template('admin_stats.html')
 
 @app.route('/survey')
 def survey():
@@ -121,7 +144,7 @@ def api_submit_survey():
             'id': next_id,
             'name': data.get('name', ''),
             'birthDate': data.get('birthDate', ''),
-            'status': data.get('status', ''),
+            'status': data.get('statusField', ''),
             'children': data.get('children', ''),
             'interests': data.get('interests', ''),
             'topics': data.get('topics', ''),
