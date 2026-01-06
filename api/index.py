@@ -1,97 +1,125 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+from flask import Flask, render_template, request, jsonify
+from datetime import datetime
 import json
 import os
-from datetime import datetime
-import requests
 
 app = Flask(__name__)
-CORS(app)
 
-TELEGRAM_BOT_TOKEN = '8500508012:AAEMuWXEsZsUfiDiOV50xFw928Tn7VUJRH8'
-TELEGRAM_CHAT_ID = '-5015136189'
+# Path to store responses
+RESPONSES_FILE = 'responses.json'
 
-DATA_DIR = '/tmp'
-SURVEYS_FILE = os.path.join(DATA_DIR, 'surveys.json')
-
-def load_json(filepath):
-    try:
-        if os.path.exists(filepath):
-            with open(filepath, 'r', encoding='utf-8') as f:
+def load_responses():
+    """Load existing responses from file"""
+    if os.path.exists(RESPONSES_FILE):
+        try:
+            with open(RESPONSES_FILE, 'r', encoding='utf-8') as f:
                 return json.load(f)
-    except:
-        pass
-    return {}
+        except:
+            return []
+    return []
 
-def save_json(filepath, data):
-    try:
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        return True
-    except:
-        return False
+def save_responses(responses):
+    """Save responses to file"""
+    with open(RESPONSES_FILE, 'w', encoding='utf-8') as f:
+        json.dump(responses, f, ensure_ascii=False, indent=2)
 
-def send_telegram(chat_id, text):
-    try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        requests.post(url, json={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'}, timeout=5)
-    except:
-        pass
-
-@app.route('/', methods=['GET'])
+@app.route('/')
 def index():
-    return jsonify({'status': 'ok', 'message': 'Witch Club API'})
+    """Serve main form page"""
+    return render_template('index.html')
 
-@app.route('/api/survey', methods=['POST', 'OPTIONS'])
-def submit_survey():
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'}), 200
-    
+@app.route('/api/survey', methods=['POST'])
+def survey():
+    """Handle survey submission"""
     try:
-        data = request.get_json() or {}
-        name = data.get('name', '').strip()
+        data = request.get_json()
         
-        if not name:
-            return jsonify({'error': 'Name required'}), 400
+        # Validate required fields
+        if not data.get('name'):
+            return jsonify({'error': 'Имя обязательно'}), 400
         
-        surveys = load_json(SURVEYS_FILE)
-        if not isinstance(surveys, dict):
-            surveys = {}
-        
-        survey_id = str(len(surveys) + 1)
-        
-        surveys[survey_id] = {
-            'id': survey_id,
-            'name': name,
+        # Create response object
+        response = {
+            'timestamp': datetime.now().isoformat(),
+            'name': data.get('name', '').strip(),
             'birthDate': data.get('birthDate', ''),
-            'telegramUsername': data.get('telegramUsername', ''),
+            'telegramUsername': data.get('telegramUsername', '').strip(),
             'familyStatus': data.get('familyStatus', ''),
             'children': data.get('children', ''),
-            'interests': data.get('interests', ''),
-            'topics': data.get('topics', ''),
-            'goal': data.get('goal', ''),
-            'source': data.get('source', ''),
-            'status': 'pending',
-            'createdAt': datetime.now().isoformat()
+            'interests': data.get('interests', '').strip(),
+            'topics': data.get('topics', '').strip(),
+            'goal': data.get('goal', '').strip(),
+            'source': data.get('source', '').strip()
         }
         
-        if save_json(SURVEYS_FILE, surveys):
-            send_telegram(TELEGRAM_CHAT_ID, f"📝 Новая заявка: {name}")
-            return jsonify({'success': True, 'survey': surveys[survey_id]}), 200
+        # Load existing responses
+        responses = load_responses()
         
-        return jsonify({'error': 'Save failed'}), 500
+        # Add new response
+        responses.append(response)
         
+        # Save updated responses
+        save_responses(responses)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Спасибо! Ваша заявка принята.',
+            'data': response
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Ошибка сервера: {str(e)}'}), 500
+
+@app.route('/api/responses', methods=['GET'])
+def get_responses():
+    """Get all responses (for admin dashboard)"""
+    try:
+        responses = load_responses()
+        return jsonify({
+            'success': True,
+            'count': len(responses),
+            'responses': responses
+        }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/surveys', methods=['GET'])
-def get_surveys():
+@app.route('/api/stats', methods=['GET'])
+def get_stats():
+    """Get survey statistics"""
     try:
-        surveys = load_json(SURVEYS_FILE)
-        return jsonify(list(surveys.values()) if isinstance(surveys, dict) else []), 200
+        responses = load_responses()
+        
+        stats = {
+            'total': len(responses),
+            'familyStatus': {},
+            'children': {},
+            'sources': {}
+        }
+        
+        for r in responses:
+            # Count family status
+            status = r.get('familyStatus', 'unknown')
+            stats['familyStatus'][status] = stats['familyStatus'].get(status, 0) + 1
+            
+            # Count children responses
+            children = r.get('children', 'unknown')
+            stats['children'][children] = stats['children'].get(children, 0) + 1
+            
+            # Count sources
+            source = r.get('source', 'unknown')
+            stats['sources'][source] = stats['sources'].get(source, 0) + 1
+        
+        return jsonify({
+            'success': True,
+            'stats': stats
+        }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/health', methods=['GET'])
+def health():
+    """Health check endpoint"""
+    return jsonify({'status': 'ok', 'message': 'Witch Club API running'}), 200
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
