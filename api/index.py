@@ -17,7 +17,7 @@ SURVEYS_FILE = os.path.join(DATA_DIR, 'surveys.json')
 def load_json(filepath):
     try:
         if os.path.exists(filepath):
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 return json.load(f)
     except:
         pass
@@ -26,8 +26,8 @@ def load_json(filepath):
 def save_json(filepath, data):
     try:
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        with open(filepath, 'w') as f:
-            json.dump(data, f, indent=2)
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
         return True
     except:
         return False
@@ -41,39 +41,57 @@ def send_telegram(chat_id, text):
 
 @app.route('/', methods=['GET'])
 def index():
-    return jsonify({'status': 'ok'})
+    return jsonify({'status': 'ok', 'message': 'Witch Club API'})
 
-@app.route('/api/survey', methods=['POST'])
+@app.route('/api/survey', methods=['POST', 'OPTIONS'])
 def submit_survey():
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+    
     try:
-        data = request.json
-        if not data.get('name'):
+        data = request.get_json() or {}
+        name = data.get('name', '').strip()
+        
+        if not name:
             return jsonify({'error': 'Name required'}), 400
         
         surveys = load_json(SURVEYS_FILE)
+        if not isinstance(surveys, dict):
+            surveys = {}
+        
         survey_id = str(len(surveys) + 1)
         
         surveys[survey_id] = {
             'id': survey_id,
-            'name': data.get('name'),
-            'telegramUsername': data.get('telegramUsername'),
+            'name': name,
+            'birthDate': data.get('birthDate', ''),
+            'telegramUsername': data.get('telegramUsername', ''),
+            'familyStatus': data.get('familyStatus', ''),
+            'children': data.get('children', ''),
+            'interests': data.get('interests', ''),
+            'topics': data.get('topics', ''),
+            'goal': data.get('goal', ''),
+            'source': data.get('source', ''),
             'status': 'pending',
             'createdAt': datetime.now().isoformat()
         }
         
-        save_json(SURVEYS_FILE, surveys)
-        send_telegram(TELEGRAM_CHAT_ID, f"📝 Новая заявка: {data.get('name')}")
+        if save_json(SURVEYS_FILE, surveys):
+            send_telegram(TELEGRAM_CHAT_ID, f"📝 Новая заявка: {name}")
+            return jsonify({'success': True, 'survey': surveys[survey_id]}), 200
         
-        return jsonify({'success': True, 'survey': surveys[survey_id]})
+        return jsonify({'error': 'Save failed'}), 500
+        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/surveys', methods=['GET'])
 def get_surveys():
-    surveys = load_json(SURVEYS_FILE)
-    return jsonify(list(surveys.values()))
-
-handler = app
+    try:
+        surveys = load_json(SURVEYS_FILE)
+        return jsonify(list(surveys.values()) if isinstance(surveys, dict) else []), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=False)
