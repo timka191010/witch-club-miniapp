@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>📝 Заявки — Ведьмы не стареют</title>
+    <title>📋 Заявки — Админка</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,449 +13,485 @@
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        h1 {
-            font-size: 1.6rem;
-            background: linear-gradient(90deg, #a8edea 0%, #fed6e3 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        a.back-link {
-            color: #b19cd9;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-        a.back-link:hover { text-decoration: underline; }
-
-        .tabs {
-            display: flex;
-            gap: 14px;
-            border-bottom: 1px solid rgba(168,237,234,0.35);
-            margin-bottom: 16px;
-        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 20px; background: rgba(48,43,99,0.5); border-radius: 12px; border: 1px solid rgba(168,237,234,0.2); }
+        h1 { font-size: 1.6rem; background: linear-gradient(90deg, #a8edea, #fed6e3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logout-btn { padding: 8px 16px; background: rgba(255,107,107,0.8); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .logout-btn:hover { background: rgba(255,107,107,1); }
+        
+        .tabs { display: flex; gap: 14px; border-bottom: 2px solid rgba(168,237,234,0.35); margin-bottom: 20px; }
         .tab-btn {
-            padding: 8px 14px;
+            padding: 10px 16px;
             border: none;
             background: transparent;
             color: #b19cd9;
             font-weight: 600;
             cursor: pointer;
             border-bottom: 3px solid transparent;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            transition: all 0.3s;
         }
-        .tab-btn.active {
-            color: #a8edea;
-            border-bottom-color: #a8edea;
-        }
-        .tab { display: none; margin-top: 16px; }
+        .tab-btn.active { color: #a8edea; border-bottom-color: #a8edea; }
+        .tab { display: none; }
         .tab.active { display: block; }
-
+        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 6px;
-            border-radius: 14px;
+            background: rgba(48,43,99,0.4);
+            border: 1px solid rgba(168,237,234,0.2);
+            border-radius: 8px;
             overflow: hidden;
-            border: 2px solid rgba(168,237,234,0.35);
-            background: linear-gradient(135deg, rgba(168,237,234,0.08), rgba(254,214,227,0.08));
-            font-size: 0.9rem;
-        }
-        th, td {
-            padding: 9px 11px;
-            border-bottom: 1px solid rgba(168,237,234,0.18);
+            margin-top: 10px;
         }
         th {
+            background: rgba(168,237,234,0.1);
+            padding: 12px;
             text-align: left;
-            background: rgba(168,237,234,0.15);
+            font-weight: 600;
+            border-bottom: 2px solid rgba(168,237,234,0.3);
             color: #a8edea;
-            font-weight: 600;
         }
-        tr:hover td { background: rgba(168,237,234,0.06); }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 0.8rem;
-            font-weight: 600;
+        td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(168,237,234,0.1);
         }
-        .status-pending { background: rgba(255,193,7,0.15); color: #ffcf4a; }
-        .status-approved { background: rgba(76,175,80,0.18); color: #7cd67c; }
-        .status-rejected { background: rgba(244,67,54,0.18); color: #ff9a9a; }
-
-        .btn-xs {
-            padding: 5px 8px;
-            border-radius: 7px;
-            border: none;
-            font-size: 0.8rem;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .btn-approve { background: rgba(76,175,80,0.2); color: #7cd67c; border: 1px solid rgba(76,175,80,0.7); }
-        .btn-reject { background: rgba(244,67,54,0.2); color: #ff9a9a; border: 1px solid rgba(244,67,54,0.7); }
-        .btn-add-member { background: rgba(168,237,234,0.2); color: #a8edea; border: 1px solid rgba(168,237,234,0.85); }
-        .btn-delete { background: rgba(255,107,107,0.15); color: #ffb3b3; border: 1px solid rgba(255,107,107,0.7); }
-
-        .actions { display: flex; flex-wrap: wrap; gap: 6px; }
-
-        .members-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 14px;
-            margin-top: 8px;
-        }
-        .member-card {
-            padding: 14px;
-            border-radius: 14px;
-            border: 2px solid rgba(168,237,234,0.35);
-            background: linear-gradient(135deg, rgba(168,237,234,0.08), rgba(254,214,227,0.08));
-        }
-        .member-emoji { font-size: 2rem; margin-bottom: 4px; }
-        .member-name { font-weight: 700; margin-bottom: 2px; }
-        .member-title { font-size: 0.85rem; color: #fed6e3; margin-bottom: 6px; }
-        .empty {
-            margin-top: 18px;
-            text-align: center;
-            color: #b19cd9;
-            font-size: 0.9rem;
-        }
-
-        .random-gen {
+        tr:hover { background: rgba(168,237,234,0.08); }
+        
+        .btn-group {
             display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 6px;
         }
-        .random-gen input {
-            flex: 1;
-            padding: 8px 12px;
-            border-radius: 7px;
-            border: 1px solid rgba(168,237,234,0.5);
-            background: rgba(0,0,0,0.3);
-            color: #a8edea;
-            font-size: 0.9rem;
-        }
-        .random-gen button {
-            padding: 8px 12px;
-            border-radius: 7px;
-            border: 1px solid rgba(168,237,234,0.85);
-            background: rgba(168,237,234,0.2);
-            color: #a8edea;
-            font-weight: 600;
+        .btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
         }
-        .random-gen button:hover {
-            background: rgba(168,237,234,0.3);
+        .btn-view {
+            background: rgba(100,200,255,0.7);
+            color: #fff;
         }
-
-        @media (max-width: 720px) {
-            header { flex-direction: column; align-items: flex-start; gap: 8px; }
-            table { font-size: 0.8rem; }
-            th, td { padding: 7px; }
+        .btn-view:hover { background: rgba(100,200,255,1); }
+        .btn-approve {
+            background: rgba(76,175,80,0.7);
+            color: #fff;
         }
+        .btn-approve:hover { background: rgba(76,175,80,1); }
+        .btn-reject {
+            background: rgba(244,67,54,0.7);
+            color: #fff;
+        }
+        .btn-reject:hover { background: rgba(244,67,54,1); }
+        .btn-delete {
+            background: rgba(150,20,20,0.7);
+            color: #fff;
+        }
+        .btn-delete:hover { background: rgba(150,20,20,1); }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-pending { background: rgba(255,152,0,0.3); color: #ffb74d; }
+        .status-approved { background: rgba(76,175,80,0.3); color: #81c784; }
+        .status-rejected { background: rgba(244,67,54,0.3); color: #ef5350; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: linear-gradient(135deg, #0f0c29, #302b63);
+            border: 2px solid #a8edea;
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #a8edea;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            color: #0f0c29;
+            font-weight: bold;
+        }
+        .modal-close:hover { background: #fed6e3; }
+        
+        .modal h2 { margin-bottom: 20px; color: #a8edea; }
+        .modal-field { margin-bottom: 16px; }
+        .modal-field label { display: block; font-size: 0.85rem; color: #b19cd9; margin-bottom: 4px; font-weight: 600; }
+        .modal-field value { display: block; padding: 8px; background: rgba(168,237,234,0.1); border-radius: 4px; word-break: break-word; }
+        
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #b19cd9;
+            font-size: 1.1rem;
+        }
+        
+        .add-member-form {
+            background: rgba(48,43,99,0.4);
+            border: 1px solid rgba(168,237,234,0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.9rem; color: #b19cd9; margin-bottom: 4px; font-weight: 600; }
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(168,237,234,0.3);
+            border-radius: 4px;
+            color: #fff;
+            font-family: system-ui, sans-serif;
+        }
+        .form-group input:focus { outline: none; border-color: #a8edea; box-shadow: 0 0 8px rgba(168,237,234,0.2); }
+        .btn-primary {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(90deg, #a8edea, #fed6e3);
+            color: #0f0c29;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(168,237,234,0.3); }
     </style>
 </head>
 <body>
-<div class="container">
-    <header>
-        <h1>📝 Заявки и участницы</h1>
-        <a href="/" class="back-link">← На главную</a>
-    </header>
-
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="tab-apps">Заявки</button>
-        <button class="tab-btn" data-tab="tab-members">Участницы</button>
+    <div class="container">
+        <header>
+            <h1>📋 Панель управления</h1>
+            <button class="logout-btn" onclick="logout()">Выход</button>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('applications')">📝 Заявки</button>
+            <button class="tab-btn" onclick="switchTab('members')">👑 Участницы</button>
+        </div>
+        
+        <!-- ЗАЯВКИ -->
+        <div id="applications" class="tab active">
+            <table id="applicationsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя</th>
+                        <th>Статус</th>
+                        <th>Дата</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="applicationsList"></tbody>
+            </table>
+            <div id="applicationsEmpty" class="empty-message">Нет заявок</div>
+        </div>
+        
+        <!-- УЧАСТНИЦЫ -->
+        <div id="members" class="tab">
+            <div class="add-member-form">
+                <h3 style="margin-bottom: 16px; color: #a8edea;">➕ Добавить участницу</h3>
+                <div class="form-group">
+                    <label>Имя:</label>
+                    <input type="text" id="memberName" placeholder="Введи имя">
+                </div>
+                <button class="btn-primary" onclick="addMember()">Добавить</button>
+            </div>
+            
+            <table id="membersTable">
+                <thead>
+                    <tr>
+                        <th>Эмодзи</th>
+                        <th>Имя</th>
+                        <th>Титул</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="membersList"></tbody>
+            </table>
+            <div id="membersEmpty" class="empty-message">Нет участниц</div>
+        </div>
+    </div>
+    
+    <!-- МОДАЛЬНОЕ ОКНО ПРОСМОТРА АНКЕТЫ -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <h2>👁️ Анкета</h2>
+            <div id="modalBody"></div>
+        </div>
     </div>
 
-    <!-- Заявки -->
-    <section id="tab-apps" class="tab active">
-        <table>
-            <thead>
-            <tr>
-                <th>Имя</th>
-                <th>Статус</th>
-                <th>Дата</th>
-                <th>Действия</th>
-            </tr>
-            </thead>
-            <tbody id="appsBody">
-            <tr><td colspan="4">Загрузка...</td></tr>
-            </tbody>
-        </table>
-    </section>
+    <script>
+        const EMOJIS = ['🔮','🌙','🧿','✨','🕯️','🌑','🧙‍♀️','🌸','🕊️','🌊','🍂','❄️','🌻','🦉','🪙','💫','⭐','🔥','🌿','💎','⚡','🦋'];
+        const TITLES = ['👑 Верховная Ведьма','⭐ Ведьма Звёздного Пути','🌿 Ведьма Трав и Эликсиров','🔥 Ведьма Огненного Круга','🌙 Ведьма Лунного Света','💎 Ведьма Кристаллов','⚡ Ведьма Грозовых Ветров','🦋 Ведьма Превращений'];
 
-    <!-- Участницы -->
-    <section id="tab-members" class="tab">
-        <div class="random-gen">
-            <input type="text" id="newMemberName" placeholder="Введи имя новой участницы...">
-            <button onclick="generateAndAdd()">✨ Добавить случайно</button>
-        </div>
-        <div id="membersGrid" class="members-grid"></div>
-        <div id="membersEmpty" class="empty" style="display:none;">Пока нет участниц</div>
-    </section>
-</div>
-
-<script>
-    const API_URL = '/api';
-
-    // ===== ГЕНЕРАТОРЫ =====
-    const TITLES = [
-        '👑 Верховная Ведьма',
-        '⭐ Ведьма Звёздного Пути',
-        '🌿 Ведьма Трав и Эликсиров',
-        '🔥 Ведьма Огненного Круга',
-        '🌙 Ведьма Лунного Света',
-        '💎 Ведьма Кристаллов',
-        '⚡ Ведьма Грозовых Ветров',
-        '🦋 Ведьма Превращений',
-        '🔮 Чародейка Утренних Туманов',
-        '✨ Ведающая Путями Судьбы',
-        '🌸 Магиня Звёздного Ветра',
-        '🕊️ Берегиня Тишины',
-        '🌑 Чтица Линий Времени',
-        '🧿 Повелительница Чая и Таро',
-        '🕯️ Хранительница Теней',
-        '🌊 Ведьма Морских Глубин',
-        '🍂 Ведьма Осенних Листьев',
-        '❄️ Ведьма Ледяных Чар',
-        '🌻 Ведьма Золотых Нитей',
-        '🦉 Ведьма Ночной Мудрости',
-        '🧙‍♀️ Волшебница Забытых Слов',
-        '🌙 Королева Ночного Неба',
-        '💫 Сотворительница Звёзд',
-        '🪙 Хранительница Древних Тайн'
-    ];
-
-    const EMOJIS = ['🔮','🌙','🧿','✨','🕯️','🌑','🧙‍♀️','🌸','🕊️','🌊','🍂','❄️','🌻','🦉','🪙','💫','⭐','🔥','🌿','💎','⚡','🦋'];
-
-    function randomTitle() {
-        return TITLES[Math.floor(Math.random() * TITLES.length)];
-    }
-
-    function randomEmoji() {
-        return EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-    }
-
-    // переключение табов
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById(btn.dataset.tab).classList.add('active');
-            if (btn.dataset.tab === 'tab-members') {
-                loadMembers();
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tab === 'applications') loadApplications();
+            if (tab === 'members') loadMembers();
+        }
+
+        async function loadApplications() {
+            try {
+                const res = await fetch('/api/applications');
+                const data = await res.json();
+                
+                if (data.success && data.applications.length > 0) {
+                    let html = '';
+                    data.applications.forEach(app => {
+                        const date = new Date(app.createdAt).toLocaleDateString('ru-RU');
+                        const statusClass = `status-${app.applicationStatus}`;
+                        const statusText = app.applicationStatus === 'pending' ? 'На рассмотрении' : 
+                                         app.applicationStatus === 'approved' ? '✅ Одобрена' : '❌ Отклонена';
+                        
+                        html += `
+                            <tr>
+                                <td>#${app.id}</td>
+                                <td>${app.name}</td>
+                                <td><span class="status ${statusClass}">${statusText}</span></td>
+                                <td>${date}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-view" onclick="viewApplication(${app.id})">👁️ Просмотр</button>
+                                        <button class="btn btn-approve" onclick="updateApplicationStatus(${app.id}, 'approved')">✅ Одобрить</button>
+                                        <button class="btn btn-reject" onclick="updateApplicationStatus(${app.id}, 'rejected')">❌ Отклонить</button>
+                                        <button class="btn btn-delete" onclick="deleteApplication(${app.id})">🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('applicationsList').innerHTML = html;
+                    document.getElementById('applicationsEmpty').style.display = 'none';
+                } else {
+                    document.getElementById('applicationsList').innerHTML = '';
+                    document.getElementById('applicationsEmpty').style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Load applications error:', err);
             }
-        });
-    });
+        }
 
-    async function fetchJSON(url, options) {
-        const res = await fetch(url, options);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-    }
+        async function viewApplication(appId) {
+            try {
+                const res = await fetch(`/api/applications/${appId}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    const app = data.application;
+                    let html = `
+                        <div class="modal-field">
+                            <label>ID:</label>
+                            <value>#${app.id}</value>
+                        </div>
+                        <div class="modal-field">
+                            <label>Имя:</label>
+                            <value>${app.name}</value>
+                        </div>
+                        <div class="modal-field">
+                            <label>Дата рождения:</label>
+                            <value>${app.birthDate}</value>
+                        </div>
+                        <div class="modal-field">
+                            <label>Семейный статус:</label>
+                            <value>${app.status}</value>
+                        </div>
+                        <div class="modal-field">
+                            <label>Дети:</label>
+                            <value>${app.children}</value>
+                        </div>
+                        <div class="modal-field">
+                            <label>Интересы:</label>
+                            <value>${app.interests}</value>
+                        </div>
+                        <div class="modal-field">
+                            <label>Любимые темы:</label>
+                            <value>${app.topics}</value>
+                        </div>
+                        <div class="modal-field">
+                            <label>Цель участия:</label>
+                            <value>${app.goal}</value>
+                        </div>
+                        <div class="modal-field">
+                            <label>Откуда узнала:</label>
+                            <value>${app.source}</value>
+                        </div>
+                        <div class="modal-field">
+                            <label>Статус:</label>
+                            <value>${app.applicationStatus}</value>
+                        </div>
+                        <div class="modal-field">
+                            <label>Дата подачи:</label>
+                            <value>${new Date(app.createdAt).toLocaleString('ru-RU')}</value>
+                        </div>
+                    `;
+                    document.getElementById('modalBody').innerHTML = html;
+                    document.getElementById('viewModal').classList.add('active');
+                }
+            } catch (err) {
+                console.error('View application error:', err);
+                alert('❌ Ошибка при загрузке анкеты');
+            }
+        }
 
-    async function loadApplications() {
-        const body = document.getElementById('appsBody');
-        body.innerHTML = '<tr><td colspan="4">Загрузка...</td></tr>';
-        try {
-            const data = await fetchJSON(API_URL + '/applications');
-            const apps = data.applications || [];
-            if (!apps.length) {
-                body.innerHTML = '<tr><td colspan="4">Заявок пока нет</td></tr>';
+        function closeModal() {
+            document.getElementById('viewModal').classList.remove('active');
+        }
+
+        async function updateApplicationStatus(appId, status) {
+            try {
+                const res = await fetch(`/api/applications/${appId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    loadApplications();
+                } else {
+                    alert('❌ Ошибка при обновлении статуса');
+                }
+            } catch (err) {
+                console.error('Update status error:', err);
+            }
+        }
+
+        async function deleteApplication(appId) {
+            if (!confirm('🗑️ Точно удалить заявку?')) return;
+            
+            try {
+                const res = await fetch(`/api/applications/${appId}`, { method: 'DELETE' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    loadApplications();
+                } else {
+                    alert('❌ Ошибка при удалении');
+                }
+            } catch (err) {
+                console.error('Delete error:', err);
+            }
+        }
+
+        async function loadMembers() {
+            try {
+                const res = await fetch('/api/members');
+                const data = await res.json();
+                
+                if (data.success && data.members.length > 0) {
+                    let html = '';
+                    data.members.forEach(member => {
+                        html += `
+                            <tr>
+                                <td>${member.emoji}</td>
+                                <td>${member.name}</td>
+                                <td>${member.title}</td>
+                                <td>
+                                    <button class="btn btn-delete" onclick="deleteMember(${member.id})">🗑️ Удалить</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('membersList').innerHTML = html;
+                    document.getElementById('membersEmpty').style.display = 'none';
+                } else {
+                    document.getElementById('membersList').innerHTML = '';
+                    document.getElementById('membersEmpty').style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Load members error:', err);
+            }
+        }
+
+        async function addMember() {
+            const name = document.getElementById('memberName').value.trim();
+            if (!name) {
+                alert('❌ Введи имя');
                 return;
             }
-            body.innerHTML = apps.map(app => {
-                const statusClass =
-                    app.applicationStatus === 'approved' ? 'status-approved' :
-                    app.applicationStatus === 'rejected' ? 'status-rejected' :
-                    'status-pending';
-                const statusText =
-                    app.applicationStatus === 'approved' ? 'Одобрена' :
-                    app.applicationStatus === 'rejected' ? 'Отклонена' :
-                    'На проверке';
-                const date = app.createdAt
-                    ? new Date(app.createdAt).toLocaleDateString('ru-RU')
-                    : '—';
-
-                return `
-                    <tr>
-                        <td>${app.name || 'Без имени'}</td>
-                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                        <td>${date}</td>
-                        <td>
-                            <div class="actions">
-                                ${app.applicationStatus === 'pending' ? `
-                                  <button class="btn-xs btn-approve" onclick="approveApp(${app.id})">✓ Одобрить</button>
-                                  <button class="btn-xs btn-reject" onclick="rejectApp(${app.id})">✗ Отклонить</button>
-                                ` : ''}
-                                <button class="btn-xs btn-add-member" onclick="addFromApp(${app.id})">➕ В участницы</button>
-                                <button class="btn-xs btn-delete" onclick="deleteApp(${app.id})">🗑 Удалить</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        } catch (e) {
-            console.error(e);
-            body.innerHTML = '<tr><td colspan="4">Ошибка загрузки</td></tr>';
-        }
-    }
-
-    async function loadMembers() {
-        const grid = document.getElementById('membersGrid');
-        const empty = document.getElementById('membersEmpty');
-        grid.innerHTML = '';
-        empty.style.display = 'none';
-        try {
-            const data = await fetchJSON(API_URL + '/members');
-            const members = data.members || [];
-            if (!members.length) {
-                empty.style.display = 'block';
-                return;
+            
+            try {
+                const res = await fetch('/api/members', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        title: TITLES[Math.floor(Math.random() * TITLES.length)],
+                        emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)]
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('memberName').value = '';
+                    loadMembers();
+                } else {
+                    alert('❌ Ошибка при добавлении');
+                }
+            } catch (err) {
+                console.error('Add member error:', err);
             }
-            grid.innerHTML = members.map(m => `
-                <div class="member-card">
-                    <div class="member-emoji">${m.emoji || '🔮'}</div>
-                    <div class="member-name">${m.name}</div>
-                    <div class="member-title">${m.title || ''}</div>
-                    <button class="btn-xs btn-delete" style="margin-top:8px;width:100%;" onclick="deleteMember(${m.id})">Удалить</button>
-                </div>
-            `).join('');
-        } catch (e) {
-            console.error(e);
-            empty.style.display = 'block';
-            empty.textContent = 'Ошибка загрузки';
         }
-    }
 
-    async function approveApp(id) {
-        if (!confirm('Одобрить заявку?')) return;
-        try {
-            await fetchJSON(`/api/applications/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'approved' })
-            });
-            loadApplications();
-        } catch (e) {
-            alert('Ошибка при одобрении');
-        }
-    }
-
-    async function rejectApp(id) {
-        if (!confirm('Отклонить заявку?')) return;
-        try {
-            await fetchJSON(`/api/applications/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'rejected' })
-            });
-            loadApplications();
-        } catch (e) {
-            alert('Ошибка при отклонении');
-        }
-    }
-
-    async function deleteApp(id) {
-        if (!confirm('Удалить заявку?')) return;
-        try {
-            await fetch(`/api/applications/${id}`, { method: 'DELETE' });
-            loadApplications();
-        } catch (e) {
-            alert('Ошибка при удалении');
-        }
-    }
-
-    async function addFromApp(id) {
-        try {
-            const data = await fetchJSON(API_URL + '/applications');
-            const app = (data.applications || []).find(a => a.id === id);
-            if (!app) {
-                alert('Заявка не найдена');
-                return;
+        async function deleteMember(memberId) {
+            if (!confirm('🗑️ Точно удалить участницу?')) return;
+            
+            try {
+                const res = await fetch(`/api/members/${memberId}`, { method: 'DELETE' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    loadMembers();
+                } else {
+                    alert('❌ Ошибка при удалении');
+                }
+            } catch (err) {
+                console.error('Delete member error:', err);
             }
-            const title = randomTitle();
-            const emoji = randomEmoji();
-
-            await fetchJSON(API_URL + '/members', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: app.name || 'Без имени',
-                    title,
-                    emoji
-                })
-            });
-
-            await fetchJSON(`/api/applications/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'approved' })
-            });
-
-            alert('Участница добавлена в клуб ✨');
-            loadMembers();
-            loadApplications();
-        } catch (e) {
-            console.error(e);
-            alert('Ошибка при добавлении участницы');
-        }
-    }
-
-    async function generateAndAdd() {
-        const nameInput = document.getElementById('newMemberName');
-        const name = nameInput.value.trim();
-
-        if (!name) {
-            alert('Введи имя участницы!');
-            return;
         }
 
-        try {
-            const title = randomTitle();
-            const emoji = randomEmoji();
-
-            const response = await fetchJSON(API_URL + '/members', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name,
-                    title,
-                    emoji
-                })
-            });
-
-            alert(`✨ ${name} добавлена как "${title.split(' ').slice(1).join(' ')}"!`);
-            nameInput.value = '';
-            loadMembers();
-        } catch (e) {
-            console.error(e);
-            alert('Ошибка при добавлении участницы');
+        function logout() {
+            window.location.href = '/logout';
         }
-    }
 
-    async function deleteMember(id) {
-        if (!confirm('Удалить участницу?')) return;
-        try {
-            await fetch(`/api/members/${id}`, { method: 'DELETE' });
-            loadMembers();
-        } catch (e) {
-            alert('Ошибка при удалении участницы');
-        }
-    }
-
-    // экспортируем функции в глобал
-    window.approveApp = approveApp;
-    window.rejectApp = rejectApp;
-    window.deleteApp = deleteApp;
-    window.addFromApp = addFromApp;
-    window.deleteMember = deleteMember;
-    window.generateAndAdd = generateAndAdd;
-
-    loadApplications();
-    loadMembers();
-</script>
+        // Load on init
+        loadApplications();
+    </script>
 </body>
 </html>
