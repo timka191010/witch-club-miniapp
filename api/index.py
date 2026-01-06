@@ -82,21 +82,6 @@ TITLES = [
     '💎 Ведьма Кристаллов',
     '⚡ Ведьма Грозовых Ветров',
     '🦋 Ведьма Превращений',
-    '🔮 Чародейка Утренних Туманов',
-    '✨ Ведающая Путями Судьбы',
-    '🌸 Магиня Звёздного Ветра',
-    '🕊️ Берегиня Тишины',
-    '🌑 Чтица Линий Времени',
-    '🧿 Повелительница Чая и Таро',
-    '🕯️ Хранительница Теней',
-    '🌊 Ведьма Морских Глубин',
-    '🍂 Ведьма Осенних Листьев',
-    '❄️ Ведьма Ледяных Чар',
-    '🌻 Ведьма Золотых Нитей',
-    '🦉 Ведьма Ночной Мудрости',
-    '🧙‍♀️ Волшебница Забытых Слов',
-    '💫 Сотворительница Звёзд',
-    '🪙 Хранительница Древних Тайн'
 ]
 
 EMOJIS = ['🔮','🌙','🧿','✨','🕯️','🌑','🧙‍♀️','🌸','🕊️','🌊','🍂','❄️','🌻','🦉','🪙','💫','⭐','🔥','🌿','💎','⚡','🦋']
@@ -109,10 +94,16 @@ def random_title():
 def random_emoji():
     return EMOJIS[random.randint(0, len(EMOJIS)-1)]
 
+# ========== HTML ROUTES ==========
+
 @app.route('/')
 def index():
     members = load_members()
     return render_template('index.html', members=members)
+
+@app.route('/admin.html')
+def admin():
+    return render_template('admin.html')
 
 @app.route('/admin_login.html')
 def admin_login():
@@ -134,20 +125,25 @@ def survey():
 def profile():
     return render_template('profile.html')
 
+# ========== API ROUTES ==========
+
 @app.route('/api/admin_login', methods=['POST'])
 def api_admin_login():
     try:
         data = request.json
-        username = data.get('username')
-        password = data.get('password')
+        username = data.get('username', '')
+        password = data.get('password', '')
         
         if username == 'admin' and password == 'ведьма2025':
             session['admin_logged_in'] = True
             session.permanent = True
+            logger.info('Admin logged in')
             return jsonify({'success': True, 'message': 'Login successful'}), 200
         else:
+            logger.warning(f'Failed login attempt: {username}')
             return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
     except Exception as e:
+        logger.error(f'Login error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/submit_survey', methods=['POST'])
@@ -178,8 +174,10 @@ def submit_survey():
         session['user_name'] = data.get('name', '')
         session.permanent = True
         
+        logger.info(f'New survey submitted: {next_id}')
         return jsonify({'success': True, 'user_id': next_id}), 201
     except Exception as e:
+        logger.error(f'Survey submission error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/profile', methods=['GET'])
@@ -194,8 +192,9 @@ def get_profile():
         
         if profile:
             return jsonify({'success': True, 'profile': profile}), 200
-        return jsonify({'success': False, 'message': 'Not found'}), 404
+        return jsonify({'success': False, 'message': 'Profile not found'}), 404
     except Exception as e:
+        logger.error(f'Profile fetch error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/applications', methods=['GET'])
@@ -204,6 +203,7 @@ def get_applications():
         surveys = load_surveys()
         return jsonify({'success': True, 'applications': surveys, 'total': len(surveys)}), 200
     except Exception as e:
+        logger.error(f'Applications fetch error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/applications/<int:app_id>', methods=['PATCH'])
@@ -216,10 +216,12 @@ def update_application(app_id):
             if survey.get('id') == app_id:
                 survey['applicationStatus'] = data.get('status')
                 save_surveys(surveys)
+                logger.info(f'Application {app_id} updated to {data.get("status")}')
                 return jsonify({'success': True, 'application': survey}), 200
         
-        return jsonify({'success': False, 'message': 'Not found'}), 404
+        return jsonify({'success': False, 'message': 'Application not found'}), 404
     except Exception as e:
+        logger.error(f'Application update error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/applications/<int:app_id>', methods=['DELETE'])
@@ -228,8 +230,10 @@ def delete_application(app_id):
         surveys = load_surveys()
         surveys = [s for s in surveys if s.get('id') != app_id]
         save_surveys(surveys)
+        logger.info(f'Application {app_id} deleted')
         return jsonify({'success': True}), 200
     except Exception as e:
+        logger.error(f'Application delete error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/members', methods=['GET'])
@@ -238,6 +242,7 @@ def get_members():
         members = load_members()
         return jsonify({'success': True, 'members': members, 'count': len(members)}), 200
     except Exception as e:
+        logger.error(f'Members fetch error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/members', methods=['POST'])
@@ -249,7 +254,7 @@ def add_member():
         
         new_member = {
             'id': next_id,
-            'name': data.get('name'),
+            'name': data.get('name', 'Unnamed'),
             'title': data.get('title', random_title()),
             'emoji': data.get('emoji', random_emoji())
         }
@@ -257,8 +262,10 @@ def add_member():
         members.append(new_member)
         save_members(members)
         
+        logger.info(f'New member added: {next_id}')
         return jsonify({'success': True, 'member': new_member}), 201
     except Exception as e:
+        logger.error(f'Member add error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/members/<int:member_id>', methods=['DELETE'])
@@ -267,8 +274,10 @@ def delete_member(member_id):
         members = load_members()
         members = [m for m in members if m.get('id') != member_id]
         save_members(members)
+        logger.info(f'Member {member_id} deleted')
         return jsonify({'success': True}), 200
     except Exception as e:
+        logger.error(f'Member delete error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/stats', methods=['GET'])
@@ -289,6 +298,7 @@ def get_stats():
             'members': len(members)
         }), 200
     except Exception as e:
+        logger.error(f'Stats fetch error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/health', methods=['GET'])
@@ -299,6 +309,8 @@ def health():
 def logout():
     session.clear()
     return redirect('/')
+
+# ========== ERROR HANDLERS ==========
 
 @app.errorhandler(404)
 def not_found(e):
