@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>🧙‍♀️ Админка — Ведьмы не стареют</title>
+    <title>📝 Заявки — Ведьмы не стареют</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -14,22 +14,20 @@
             padding: 20px;
         }
         .container { max-width: 1200px; margin: 0 auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         h1 {
             font-size: 1.6rem;
             background: linear-gradient(90deg, #a8edea 0%, #fed6e3 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .logout {
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: 1px solid rgba(255,107,107,0.8);
-            background: rgba(255,107,107,0.18);
-            color: #ff9a9a;
-            font-size: 0.85rem;
-            cursor: pointer;
+        a.back-link {
+            color: #b19cd9;
+            text-decoration: none;
+            font-size: 0.9rem;
         }
+        a.back-link:hover { text-decoration: underline; }
+
         .tabs {
             display: flex;
             gap: 14px;
@@ -37,47 +35,21 @@
             margin-bottom: 16px;
         }
         .tab-btn {
-            padding: 9px 16px;
+            padding: 8px 14px;
             border: none;
             background: transparent;
             color: #b19cd9;
             font-weight: 600;
             cursor: pointer;
             border-bottom: 3px solid transparent;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
         .tab-btn.active {
             color: #a8edea;
             border-bottom-color: #a8edea;
         }
-        .tab {
-            display: none;
-            margin-top: 16px;
-        }
-        .tab.active {
-            display: block;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 14px;
-        }
-        .stat-card {
-            padding: 16px;
-            border-radius: 14px;
-            border: 2px solid rgba(168,237,234,0.35);
-            background: linear-gradient(135deg, rgba(168,237,234,0.08), rgba(254,214,227,0.08));
-            text-align: center;
-        }
-        .stat-number {
-            font-size: 2rem;
-            color: #a8edea;
-            margin-bottom: 4px;
-        }
-        .stat-label {
-            font-size: 0.9rem;
-            color: #b19cd9;
-        }
+        .tab { display: none; margin-top: 16px; }
+        .tab.active { display: block; }
 
         table {
             width: 100%;
@@ -90,8 +62,8 @@
             font-size: 0.9rem;
         }
         th, td {
-            padding: 10px 12px;
-            border-bottom: 1px solid rgba(168,237,234,0.15);
+            padding: 9px 11px;
+            border-bottom: 1px solid rgba(168,237,234,0.18);
         }
         th {
             text-align: left;
@@ -99,9 +71,8 @@
             color: #a8edea;
             font-weight: 600;
         }
-        tr:hover td {
-            background: rgba(168,237,234,0.06);
-        }
+        tr:hover td { background: rgba(168,237,234,0.06); }
+
         .status-badge {
             display: inline-block;
             padding: 4px 10px;
@@ -126,11 +97,7 @@
         .btn-add-member { background: rgba(168,237,234,0.2); color: #a8edea; border: 1px solid rgba(168,237,234,0.85); }
         .btn-delete { background: rgba(255,107,107,0.15); color: #ffb3b3; border: 1px solid rgba(255,107,107,0.7); }
 
-        .actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; }
 
         .members-grid {
             display: grid;
@@ -148,60 +115,33 @@
         .member-name { font-weight: 700; margin-bottom: 2px; }
         .member-title { font-size: 0.85rem; color: #fed6e3; margin-bottom: 6px; }
         .empty {
-            margin-top: 20px;
+            margin-top: 18px;
             text-align: center;
             color: #b19cd9;
             font-size: 0.9rem;
         }
+
         @media (max-width: 720px) {
-            header { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .tabs { flex-wrap: wrap; }
+            header { flex-direction: column; align-items: flex-start; gap: 8px; }
             table { font-size: 0.8rem; }
-            th, td { padding: 8px; }
+            th, td { padding: 7px; }
         }
     </style>
 </head>
 <body>
 <div class="container">
     <header>
-        <h1>🧙‍♀️ Админ‑панель клуба «Ведьмы не стареют»</h1>
-        <button class="logout" id="logoutBtn">Выйти</button>
+        <h1>📝 Заявки и участницы</h1>
+        <a href="/" class="back-link">← На главную</a>
     </header>
 
     <div class="tabs">
-        <button class="tab-btn active" data-tab="tab-dashboard">📊 Дашборд</button>
-        <button class="tab-btn" data-tab="tab-apps">📝 Заявки</button>
-        <button class="tab-btn" data-tab="tab-members">👥 Участницы</button>
+        <button class="tab-btn active" data-tab="tab-apps">Заявки</button>
+        <button class="tab-btn" data-tab="tab-members">Участницы</button>
     </div>
 
-    <!-- Дашборд -->
-    <section id="tab-dashboard" class="tab active">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="statTotal">0</div>
-                <div class="stat-label">Всего заявок</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="statPending">0</div>
-                <div class="stat-label">На рассмотрении</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="statApproved">0</div>
-                <div class="stat-label">Одобрено</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="statRejected">0</div>
-                <div class="stat-label">Отклонено</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="statMembers">0</div>
-                <div class="stat-label">Участниц клуба</div>
-            </div>
-        </div>
-    </section>
-
     <!-- Заявки -->
-    <section id="tab-apps" class="tab">
+    <section id="tab-apps" class="tab active">
         <table>
             <thead>
             <tr>
@@ -227,16 +167,6 @@
 <script>
     const API_URL = '/api';
 
-    // защита по локальному флажку
-    if (!localStorage.getItem('witch_admin_auth')) {
-        window.location.href = '/admin_login.html';
-    }
-
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        localStorage.removeItem('witch_admin_auth');
-        window.location.href = '/';
-    });
-
     // переключение табов
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -247,23 +177,22 @@
         });
     });
 
-    // генерация рандомного титула
-    function randomTitle(name) {
-        const bases = [
+    function randomTitle() {
+        const titles = [
             'Ведьма Лунного Света',
             'Хранительница Теней',
             'Чародейка Утренних Туманов',
             'Ведающая Путями Судьбы',
             'Магиня Звёздного Ветра',
-            'Повелительница Чая и Таро',
             'Берегиня Тишины',
-            'Чтица Линий Времени'
+            'Чтица Линий Времени',
+            'Повелительница Чая и Таро'
         ];
-        const idx = Math.floor(Math.random() * bases.length);
-        return bases[idx];
+        return titles[Math.floor(Math.random() * titles.length)];
     }
+
     function randomEmoji() {
-        const list = ['🔮','🌙','🧿','✨','🕯️','🦂','🌑','🕊️','🧙‍♀️','🌸'];
+        const list = ['🔮','🌙','🧿','✨','🕯️','🌑','🧙‍♀️','🌸','🕊️'];
         return list[Math.floor(Math.random() * list.length)];
     }
 
@@ -271,27 +200,6 @@
         const res = await fetch(url, options);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
-    }
-
-    async function loadDashboard() {
-        try {
-            const apps = await fetchJSON(API_URL + '/applications');
-            const members = await fetchJSON(API_URL + '/members');
-            const arr = apps.applications || [];
-            const total = arr.length;
-            const pending = arr.filter(a => a.status === 'pending').length;
-            const approved = arr.filter(a => a.status === 'approved').length;
-            const rejected = arr.filter(a => a.status === 'rejected').length;
-            const membersCount = (members.members || []).length;
-
-            document.getElementById('statTotal').textContent = total;
-            document.getElementById('statPending').textContent = pending;
-            document.getElementById('statApproved').textContent = approved;
-            document.getElementById('statRejected').textContent = rejected;
-            document.getElementById('statMembers').textContent = membersCount;
-        } catch (e) {
-            console.error(e);
-        }
     }
 
     async function loadApplications() {
@@ -325,8 +233,8 @@
                         <td>
                             <div class="actions">
                                 ${app.status === 'pending' ? `
-                                <button class="btn-xs btn-approve" onclick="approveApp('${app.id}')">✓ Одобрить</button>
-                                <button class="btn-xs btn-reject" onclick="rejectApp('${app.id}')">✗ Отклонить</button>
+                                  <button class="btn-xs btn-approve" onclick="approveApp('${app.id}')">✓ Одобрить</button>
+                                  <button class="btn-xs btn-reject" onclick="rejectApp('${app.id}')">✗ Отклонить</button>
                                 ` : ''}
                                 <button class="btn-xs btn-add-member" onclick="addFromApp('${app.id}')">➕ В участницы</button>
                                 <button class="btn-xs btn-delete" onclick="deleteApp('${app.id}')">🗑 Удалить</button>
@@ -368,17 +276,15 @@
         }
     }
 
-    // действия по заявкам
     async function approveApp(id) {
         if (!confirm('Одобрить заявку?')) return;
         try {
-            await fetchJSON(`${API_URL}/applications/${id}`, {
+            await fetchJSON(`/api/applications/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'approved' })
             });
             loadApplications();
-            loadDashboard();
         } catch (e) {
             alert('Ошибка при одобрении');
         }
@@ -387,30 +293,27 @@
     async function rejectApp(id) {
         if (!confirm('Отклонить заявку?')) return;
         try {
-            await fetchJSON(`${API_URL}/applications/${id}`, {
+            await fetchJSON(`/api/applications/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'rejected' })
             });
             loadApplications();
-            loadDashboard();
         } catch (e) {
             alert('Ошибка при отклонении');
         }
     }
 
     async function deleteApp(id) {
-        if (!confirm('Удалить заявку навсегда?')) return;
+        if (!confirm('Удалить заявку?')) return;
         try {
-            await fetch(`${API_URL}/applications/${id}`, { method: 'DELETE' });
+            await fetch(`/api/applications/${id}`, { method: 'DELETE' });
             loadApplications();
-            loadDashboard();
         } catch (e) {
             alert('Ошибка при удалении');
         }
     }
 
-    // добавить участницу из заявки
     async function addFromApp(id) {
         try {
             const data = await fetchJSON(API_URL + '/applications');
@@ -419,7 +322,7 @@
                 alert('Заявка не найдена');
                 return;
             }
-            const title = randomTitle(app.name || '');
+            const title = randomTitle();
             const emoji = randomEmoji();
 
             await fetchJSON(API_URL + '/members', {
@@ -432,7 +335,7 @@
                 })
             });
 
-            await fetchJSON(`${API_URL}/applications/${id}`, {
+            await fetchJSON(`/api/applications/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'approved' })
@@ -441,34 +344,29 @@
             alert('Участница добавлена в клуб ✨');
             loadMembers();
             loadApplications();
-            loadDashboard();
         } catch (e) {
             console.error(e);
             alert('Ошибка при добавлении участницы');
         }
     }
 
-    // участницы
     async function deleteMember(id) {
         if (!confirm('Удалить участницу?')) return;
         try {
-            await fetch(`${API_URL}/members/${id}`, { method: 'DELETE' });
+            await fetch(`/api/members/${id}`, { method: 'DELETE' });
             loadMembers();
-            loadDashboard();
         } catch (e) {
             alert('Ошибка при удалении участницы');
         }
     }
 
-    // глобально, чтобы работали onclick из шаблона
+    // экспортируем функции в глобал, чтобы работал onclick
     window.approveApp = approveApp;
     window.rejectApp = rejectApp;
     window.deleteApp = deleteApp;
     window.addFromApp = addFromApp;
     window.deleteMember = deleteMember;
 
-    // стартовые загрузки
-    loadDashboard();
     loadApplications();
     loadMembers();
 </script>
