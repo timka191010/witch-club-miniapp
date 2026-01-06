@@ -45,6 +45,11 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="telegramUsername">👤 Юзернейм в Telegram (без @)</label>
+                        <input type="text" id="telegramUsername" name="telegramUsername" required placeholder="например: witches_united">
+                    </div>
+
+                    <div class="form-group">
                         <label for="status">Семейное положение</label>
                         <select id="status" name="status" required>
                             <option value="">Выберите статус</option>
@@ -98,7 +103,8 @@
             const formData = {
                 name: document.getElementById('name').value,
                 birthDate: document.getElementById('birthDate').value,
-                status: document.getElementById('status').value,
+                telegramUsername: document.getElementById('telegramUsername').value,
+                familyStatus: document.getElementById('status').value,
                 children: document.getElementById('children').value,
                 interests: document.getElementById('interests').value,
                 topics: document.getElementById('topics').value,
@@ -107,7 +113,7 @@
             };
 
             try {
-                const response = await fetch('/submit_survey', {
+                const response = await fetch('/api/survey', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
@@ -116,9 +122,11 @@
                 if (response.ok) {
                     alert('✨ Анкета отправлена! Добро пожаловать в клуб!');
                     setTimeout(() => window.location.href = '/', 1500);
+                } else {
+                    alert('❌ Ошибка при отправке');
                 }
             } catch (error) {
-                alert('❌ Ошибка при отправке');
+                alert('❌ Ошибка при отправке: ' + error.message);
             }
         });
     </script>
