@@ -6,22 +6,30 @@ import os
 import logging
 import random
 
+try:
+    import requests
+except ImportError:
+    requests = None
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.secret_key = 'witch_club_secret_2025'
 
-# Files
 SURVEYS_FILE = 'surveys.json'
 MEMBERS_FILE = 'members.json'
 ADMIN_PASSWORD = 'ведьмы123'
 
-# Lists
+# TELEGRAM CONFIG
+TELEGRAM_BOT_TOKEN = '8500508012:AAEMuWXEsZsUfiDiOV50xFw928Tn7VUJRH8'
+TELEGRAM_CHAT_ID = '-5015136189'
+TELEGRAM_CHAT_LINK = 'https://t.me/+S32BT0FT6w0xYTBi'
+
 EMOJIS = ['🔮', '🌙', '🧿', '✨', '🕯️', '🌑', '🧙‍♀️', '🌸', '🕊️', '🌊', '🍂', '❄️', '🌻', '🦉', '🪙', '💫', '⭐', '🔥', '🌿', '💎', '⚡', '🦋']
 TITLES = ['👑 Верховная Ведьма', '⭐ Ведьма Звёздного Пути', '🌿 Ведьма Трав и Эликсиров', '🔥 Ведьма Огненного Круга', '🌙 Ведьма Лунного Света', '💎 Ведьма Кристаллов', '⚡ Ведьма Грозовых Ветров', '🦋 Ведьма Превращений', '🔮 Чародейка Утренних Туманов', '✨ Ведающая Путями Судьбы', '🌸 Магиня Звёздного Ветра', '🕊️ Берегиня Тишины', '🌑 Чтица Линий Времени', '🧿 Повелительница Чая и Таро', '🕯️ Хранительница Теней', '🌊 Ведьма Морских Глубин', '🍂 Ведьма Осенних Листьев', '❄️ Ведьма Ледяных Чар', '🌻 Ведьма Золотых Нитей', '🦉 Ведьма Ночной Мудрости']
+BORDER_COLORS = ['#ff69b4', '#00ff88', '#00d4ff', '#ff6b6b', '#ffd700', '#9d4edd', '#00f5ff', '#ff10f0', '#39ff14', '#ff6348']
 
-# Helper functions
 def load_json(filepath):
     try:
         if os.path.exists(filepath):
@@ -48,7 +56,51 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ===================== ГЛАВНАЯ СТРАНИЦА =====================
+def send_telegram_message(text):
+    """Отправить сообщение в Telegram"""
+    if not requests:
+        logger.warning('requests library not installed')
+        return False
+    
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        data = {
+            'chat_id': TELEGRAM_CHAT_ID,
+            'text': text,
+            'parse_mode': 'HTML'
+        }
+        response = requests.post(url, json=data, timeout=5)
+        if response.status_code == 200:
+            logger.info('Telegram message sent successfully')
+            return True
+        else:
+            logger.error(f'Telegram error: {response.text}')
+            return False
+    except Exception as e:
+        logger.error(f'Telegram send error: {e}')
+        return False
+
+def send_welcome_message(name, telegram_username):
+    """Отправить приветственное сообщение при одобрении"""
+    if telegram_username:
+        message = f"""🎉 <b>Добро пожаловать, {name}!</b>
+
+Ты принята в клуб <b>"Ведьмы не стареют"</b>! ✨
+
+📱 <b>Присоединяйся к нам:</b>
+<a href="{TELEGRAM_CHAT_LINK}">👉 Войти в чат</a>
+
+Ждём встречи! 🔮🌙"""
+    else:
+        message = f"""🎉 <b>Добро пожаловать, {name}!</b>
+
+Ты принята в клуб <b>"Ведьмы не стареют"</b>! ✨
+
+Администратор свяжется с тобой для отправки ссылки на чат. 📬
+
+Ждём встречи! 🔮🌙"""
+    
+    send_telegram_message(message)
 
 @app.route('/')
 def index():
@@ -60,21 +112,24 @@ def index():
     <title>👑 Ведьмы Не Стареют</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Georgia', serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             min-height: 100vh;
             padding: 20px;
             color: #e0e0e0;
         }
+
         .navbar {
-            max-width: 900px;
+            max-width: 1100px;
             margin: 0 auto 30px;
             display: flex;
-            gap: 15px;
+            gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
         }
+
         .nav-btn {
             padding: 12px 24px;
             background: rgba(139, 123, 184, 0.3);
@@ -87,50 +142,89 @@ def index():
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
+            min-width: 140px;
+            text-align: center;
         }
+
         .nav-btn:hover { 
             background: rgba(255, 215, 0, 0.2);
             border-color: #ffd700;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
         }
+
+        .nav-btn.active {
+            background: rgba(255, 215, 0, 0.3);
+            border-color: #ffd700;
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        }
+
         .admin-btn {
             margin-left: auto;
             background: rgba(139, 0, 139, 0.3);
             border-color: #8B008B;
+            color: #ff69b4;
         }
+
         .admin-btn:hover {
             background: rgba(139, 0, 139, 0.5);
+            border-color: #ff69b4;
         }
-        .main-container {
-            display: flex;
-            gap: 30px;
-            max-width: 1000px;
+
+        .page-section {
+            display: none;
+            max-width: 1100px;
             margin: 0 auto;
-            flex-wrap: wrap;
-            justify-content: center;
         }
-        .form-section {
-            flex: 1;
-            min-width: 300px;
-            max-width: 500px;
+
+        .page-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
         }
-        .members-section {
-            flex: 1;
-            min-width: 300px;
-            max-width: 350px;
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        .container {
+
+        .form-container {
             background: rgba(30, 20, 50, 0.9);
             border: 2px solid #8b7bb8;
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            max-width: 700px;
+            margin: 0 auto;
         }
-        h1 { font-size: 28px; margin-bottom: 10px; color: #ffd700; text-align: center; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-        .tagline { font-size: 14px; color: #b19cd9; font-style: italic; margin-bottom: 20px; text-align: center; }
-        h2 { font-size: 20px; color: #ffd700; margin-bottom: 20px; text-align: center; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-size: 14px; color: #c4a7d6; font-weight: bold; }
+
+        h1 { 
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: #ffd700;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .tagline { 
+            font-size: 16px;
+            color: #b19cd9;
+            font-style: italic;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group { 
+            margin-bottom: 20px;
+        }
+
+        label { 
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #c4a7d6;
+            font-weight: bold;
+        }
+
         input, textarea, select {
             width: 100%;
             padding: 12px;
@@ -142,13 +236,23 @@ def index():
             font-size: 14px;
             transition: all 0.3s ease;
         }
+
+        input::placeholder, textarea::placeholder {
+            color: rgba(224, 224, 224, 0.5);
+        }
+
         input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: #ffd700;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
             background: rgba(255, 255, 255, 0.1);
         }
-        textarea { resize: vertical; min-height: 80px; }
+
+        textarea { 
+            resize: vertical;
+            min-height: 80px;
+        }
+
         button {
             width: 100%;
             padding: 14px;
@@ -164,147 +268,275 @@ def index():
             letter-spacing: 1px;
             box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
         }
-        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5); }
-        button:disabled { opacity: 0.6; cursor: not-allowed; }
-        .success-message { display: none; text-align: center; color: #4ade80; padding: 20px; background: rgba(74, 222, 128, 0.1); border: 1px solid #4ade80; border-radius: 8px; margin-bottom: 20px; }
-        .error-message { display: none; text-align: center; color: #ef4444; padding: 20px; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; margin-bottom: 20px; }
-        .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #8b7bb8; }
-        .members-list {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
         }
+
+        button:disabled { 
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .success-message { 
+            display: none;
+            text-align: center;
+            color: #4ade80;
+            padding: 20px;
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid #4ade80;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .error-message { 
+            display: none;
+            text-align: center;
+            color: #ef4444;
+            padding: 20px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .members-container {
+            background: rgba(30, 20, 50, 0.9);
+            border: 2px solid #8b7bb8;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .members-container h1 {
+            margin-bottom: 30px;
+        }
+
+        .members-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
         .member-card {
-            background: rgba(255, 215, 0, 0.05);
-            border: 1px solid rgba(255, 215, 0, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 5px solid #ffd700;
             border-radius: 12px;
-            padding: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .member-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(10px);
+            box-shadow: 0 8px 15px rgba(255, 215, 0, 0.2);
+        }
+
+        .member-emoji { 
+            font-size: 50px;
+            flex-shrink: 0;
+        }
+
+        .member-info {
+            flex: 1;
+        }
+
+        .member-name { 
+            font-size: 18px;
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .member-role { 
+            font-size: 14px;
+            color: #b19cd9;
+            font-style: italic;
+        }
+
+        .profile-container {
+            background: rgba(30, 20, 50, 0.9);
+            border: 2px solid #8b7bb8;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            max-width: 700px;
+            margin: 0 auto;
             text-align: center;
         }
-        .member-emoji { font-size: 32px; margin-bottom: 8px; }
-        .member-name { font-size: 13px; color: #ffd700; font-weight: bold; margin-bottom: 5px; }
-        .member-role { font-size: 11px; color: #b19cd9; font-style: italic; }
+
+        .profile-container h1 {
+            margin-bottom: 30px;
+        }
+
+        .profile-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #c4a7d6;
+            margin-bottom: 20px;
+        }
+
+        .footer { 
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #8b7bb8;
+        }
     </style>
 </head>
 <body>
     <div class="navbar">
-        <button class="nav-btn" onclick="scrollToForm()">📝 Анкета</button>
-        <button class="nav-btn" onclick="scrollToMembers()">👥 Участницы</button>
-        <button class="nav-btn" onclick="scrollToProfile()">🔮 Профиль</button>
-        <a href="/admin/login" class="nav-btn admin-btn">⚙️ Админка</a>
+        <button class="nav-btn active" onclick="showSection('anketa', this)">📝 АНКЕТА</button>
+        <button class="nav-btn" onclick="showSection('members', this)">👥 УЧАСТНИЦЫ</button>
+        <button class="nav-btn" onclick="showSection('profile', this)">🔮 ПРОФИЛЬ</button>
+        <a href="/admin/login" class="nav-btn admin-btn">⚙️ АДМИНКА</a>
     </div>
 
-    <div class="main-container">
-        <div class="form-section">
-            <div class="container" id="formSection">
-                <h1>👑 Ведьмы Не Стареют 👑</h1>
-                <p class="tagline">Священный клуб магических сестёр</p>
+    <!-- АНКЕТА -->
+    <div id="anketa" class="page-section active">
+        <div class="form-container">
+            <h1>🌙 Вступление в Клуб 🌙</h1>
+            <p class="tagline">Священный клуб магических сестёр</p>
 
-                <div class="success-message" id="successMsg">
-                    ✅ Ваша заявка успешно отправлена!<br>
-                    Спасибо за интерес. Мы свяжемся с вами вскоре.
+            <div class="success-message" id="successMsg">
+                ✅ Ваша заявка успешно отправлена!<br>
+                Спасибо за интерес. Мы свяжемся с вами вскоре.
+            </div>
+
+            <div class="error-message" id="errorMsg"></div>
+
+            <form id="surveyForm">
+                <div class="form-group">
+                    <label>📝 Имя *</label>
+                    <input type="text" name="name" placeholder="Ваше имя" required>
                 </div>
 
-                <div class="error-message" id="errorMsg"></div>
-
-                <form id="surveyForm">
-                    <div class="form-group">
-                        <label>📝 Имя *</label>
-                        <input type="text" name="name" placeholder="Как вас зовут?" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>🎂 Дата рождения</label>
-                        <input type="date" name="birthDate">
-                    </div>
-
-                    <div class="form-group">
-                        <label>💬 Telegram @</label>
-                        <input type="text" name="telegramUsername" placeholder="username (без @)">
-                    </div>
-
-                    <div class="form-group">
-                        <label>💑 Семейный статус</label>
-                        <select name="familyStatus">
-                            <option value="">Выбрать...</option>
-                            <option value="single">Одна</option>
-                            <option value="married">Замужем</option>
-                            <option value="divorced">Разведена</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>👶 Дети</label>
-                        <select name="children">
-                            <option value="">Выбрать...</option>
-                            <option value="no">Нет</option>
-                            <option value="yes">Да</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>✨ Интересы</label>
-                        <textarea name="interests" placeholder="Расскажите о ваших интересах..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>📚 Интересующие темы</label>
-                        <textarea name="topics" placeholder="Какие темы вас привлекают?"></textarea>
-                    </div>
-
-                    <button type="submit">✨ Отправить ✨</button>
-                </form>
-
-                <div class="footer">
-                    <p>🔮 Добро пожаловать в наш священный круг 🔮</p>
+                <div class="form-group">
+                    <label>🎂 Дата рождения (ДД.МММ.ГГГГ)</label>
+                    <input type="text" name="birthDate" placeholder="ДД.МММ.ГГГГ">
                 </div>
+
+                <div class="form-group">
+                    <label>💬 Telegram @</label>
+                    <input type="text" name="telegramUsername" placeholder="username (без @)">
+                </div>
+
+                <div class="form-group">
+                    <label>💑 Семейное положение</label>
+                    <select name="familyStatus">
+                        <option value="">Выбрать...</option>
+                        <option value="single">Одна</option>
+                        <option value="married">Замужем</option>
+                        <option value="divorced">Разведена</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>👶 Дети (возраст, пол)</label>
+                    <input type="text" name="children" placeholder="Дети (возраст, пол)">
+                </div>
+
+                <div class="form-group">
+                    <label>✨ Увлечения и хобби</label>
+                    <textarea name="interests" placeholder="Расскажите о ваших увлечениях..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>📚 Интересные темы (МК, вьезды)</label>
+                    <textarea name="topics" placeholder="Какие темы вас привлекают?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>🎯 Цель вступления в клуб</label>
+                    <textarea name="goals" placeholder="Почему вы хотите присоединиться?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>🤔 Откуда узнали о клубе?</label>
+                    <input type="text" name="source" placeholder="Источник информации">
+                </div>
+
+                <button type="submit">✨ Отправить анкету ✨</button>
+            </form>
+
+            <div class="footer">
+                <p>🔮 Добро пожаловать в наш священный круг 🔮</p>
             </div>
         </div>
+    </div>
 
-        <div class="members-section">
-            <div class="container" id="membersSection">
-                <h2>✨ Участницы ✨</h2>
-                <div class="members-list" id="membersList">
-                </div>
+    <!-- УЧАСТНИЦЫ -->
+    <div id="members" class="page-section">
+        <div class="members-container">
+            <h1>✨ Ведьмы нашего круга ✨</h1>
+            <div class="members-list" id="membersList">
+                <p style="text-align: center; color: #b19cd9;">Загружаем участниц...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПРОФИЛЬ -->
+    <div id="profile" class="page-section">
+        <div class="profile-container">
+            <h1>🔮 ПРОФИЛЬ 🔮</h1>
+            <div class="profile-text">
+                <p>Здесь скоро появится информация о вашем профиле в клубе.</p>
+                <p>После одобрения вашей заявки администратором вы получите свой уникальный титул и эмодзи!</p>
+                <p style="margin-top: 30px; font-style: italic;">✨ Добро пожаловать в нашу семью магических сестёр ✨</p>
             </div>
         </div>
     </div>
 
     <script>
-        function scrollToForm() {
-            document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
-        }
-        function scrollToMembers() {
-            document.getElementById('membersSection').scrollIntoView({ behavior: 'smooth' });
-        }
-        function scrollToProfile() {
-            alert('Раздел профиля будет скоро добавлен');
+        const borderColors = ['#ff69b4', '#00ff88', '#00d4ff', '#ff6b6b', '#ffd700', '#9d4edd', '#00f5ff', '#ff10f0', '#39ff14', '#ff6348'];
+
+        function showSection(sectionId, btn) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn:not(.admin-btn)').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            btn.classList.add('active');
+            if (sectionId === 'members') loadMembers();
         }
 
-        // Load members
         async function loadMembers() {
             try {
                 const res = await fetch('/api/members');
                 const members = await res.json();
                 const container = document.getElementById('membersList');
-                container.innerHTML = '';
                 
-                members.forEach(member => {
+                if (members.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #b19cd9;">Участниц пока нет. Станьте первой! 🌙</p>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                members.forEach((member, idx) => {
                     const card = document.createElement('div');
                     card.className = 'member-card';
+                    const color = borderColors[idx % borderColors.length];
+                    card.style.borderLeftColor = color;
                     card.innerHTML = `
                         <div class="member-emoji">${member.emoji}</div>
-                        <div class="member-name">${member.name}</div>
-                        <div class="member-role">${member.title}</div>
+                        <div class="member-info">
+                            <div class="member-name">${member.name}</div>
+                            <div class="member-role">${member.title}</div>
+                        </div>
                     `;
                     container.appendChild(card);
                 });
             } catch (e) {
                 console.error('Error loading members:', e);
+                document.getElementById('membersList').innerHTML = '<p style="color: #ef4444;">Ошибка загрузки</p>';
             }
         }
 
-        // Submit form
         document.getElementById('surveyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -313,9 +545,11 @@ def index():
                 birthDate: document.querySelector('input[name="birthDate"]').value,
                 telegramUsername: document.querySelector('input[name="telegramUsername"]').value,
                 familyStatus: document.querySelector('select[name="familyStatus"]').value,
-                children: document.querySelector('select[name="children"]').value,
+                children: document.querySelector('input[name="children"]').value,
                 interests: document.querySelector('textarea[name="interests"]').value,
-                topics: document.querySelector('textarea[name="topics"]').value
+                topics: document.querySelector('textarea[name="topics"]').value,
+                goals: document.querySelector('textarea[name="goals"]').value,
+                source: document.querySelector('input[name="source"]').value
             };
 
             try {
@@ -329,6 +563,9 @@ def index():
                     document.getElementById('surveyForm').reset();
                     document.getElementById('successMsg').style.display = 'block';
                     document.getElementById('errorMsg').style.display = 'none';
+                    setTimeout(() => {
+                        document.getElementById('successMsg').style.display = 'none';
+                    }, 5000);
                 } else {
                     const error = await response.json();
                     document.getElementById('errorMsg').textContent = '❌ Ошибка: ' + (error.error || 'Попробуйте позже');
@@ -340,13 +577,10 @@ def index():
             }
         });
 
-        // Load members on page load
         loadMembers();
     </script>
 </body>
 </html>'''
-
-# ===================== API ENDPOINTS =====================
 
 @app.route('/api/survey', methods=['POST'])
 def submit_survey():
@@ -369,6 +603,8 @@ def submit_survey():
             'children': data.get('children', ''),
             'interests': data.get('interests', ''),
             'topics': data.get('topics', ''),
+            'goals': data.get('goals', ''),
+            'source': data.get('source', ''),
             'status': 'pending',
             'createdAt': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
@@ -423,6 +659,9 @@ def approve_survey(survey_id):
         save_json(SURVEYS_FILE, surveys)
         save_json(MEMBERS_FILE, members)
         
+        # ОТПРАВИТЬ СООБЩЕНИЕ В ТЕЛЕГРАМ
+        send_welcome_message(survey['name'], survey.get('telegramUsername', ''))
+        
         return jsonify({'success': True, 'member': members[member_id]}), 200
     except Exception as e:
         logger.error(f"Error approving survey: {e}")
@@ -431,8 +670,6 @@ def approve_survey(survey_id):
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'ok', 'message': 'Witch Club API running'}), 200
-
-# ===================== АДМИНКА =====================
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -601,28 +838,29 @@ def admin_dashboard():
         }
         .admin-container { max-width: 1200px; margin: 0 auto; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 10px; }
-        .logout-btn { background: #ff4444; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; }
+        .logout-btn { background: #ff4444; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; font-weight: bold; }
         .logout-btn:hover { background: #cc0000; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .stat-card { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; text-align: center; }
+        .stat-card { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid rgba(255, 215, 0, 0.2); }
         .stat-number { font-size: 36px; font-weight: bold; color: #FFD700; }
         .stat-label { font-size: 14px; color: rgba(255, 255, 255, 0.8); margin-top: 5px; }
         table { width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.05); border-radius: 10px; overflow: hidden; margin-bottom: 30px; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        th { background: rgba(255, 255, 255, 0.1); font-weight: bold; }
+        th { background: rgba(255, 255, 255, 0.1); font-weight: bold; color: #FFD700; }
         tr:hover { background: rgba(255, 255, 255, 0.05); }
         .status { padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; }
         .status-pending { background: rgba(255, 165, 0, 0.2); color: #FFA500; }
         .status-approved { background: rgba(0, 255, 0, 0.2); color: #00FF00; }
-        .approve-btn { background: #00AA00; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .approve-btn { background: #00AA00; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
         .approve-btn:hover { background: #008800; }
-        h2 { color: #FFD700; margin-bottom: 20px; margin-top: 30px; }
+        h2 { color: #FFD700; margin-bottom: 20px; margin-top: 30px; font-size: 20px; }
+        h1 { color: #FFD700; font-size: 28px; }
     </style>
 </head>
 <body>
     <div class="admin-container">
         <div class="admin-header">
-            <h1>👑 Панель Управления</h1>
+            <h1>👑 Панель управления</h1>
             <a href="/admin/logout" class="logout-btn">Выход</a>
         </div>
 
@@ -646,6 +884,7 @@ def admin_dashboard():
         </div>
 
         <h2>📋 Заявки на рассмотрении</h2>
+        {% if pending_list %}
         <table>
             <thead>
                 <tr>
@@ -670,8 +909,12 @@ def admin_dashboard():
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <p style="color: #b19cd9; text-align: center; padding: 20px;">Нет заявок на рассмотрении</p>
+        {% endif %}
 
-        <h2>👥 Одобренные участницы</h2>
+        <h2>👥 Одобренные участницы ({{ members_list|length }})</h2>
+        {% if members_list %}
         <table>
             <thead>
                 <tr>
@@ -690,6 +933,9 @@ def admin_dashboard():
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <p style="color: #b19cd9; text-align: center; padding: 20px;">Нет одобренных участниц</p>
+        {% endif %}
     </div>
 </body>
 </html>''',
